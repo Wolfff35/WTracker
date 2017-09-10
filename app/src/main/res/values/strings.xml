@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">WTracker</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
+    <string name="google_maps_key">AIzaSyD6BvvorcKPqBkn6bArqR9rcTj7Lw8mZzk</string>
+</resources>
