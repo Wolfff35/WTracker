@@ -14,15 +14,6 @@
               android:layout_height="match_parent"
               tools:context="com.wolff.wtracker.ActivityMain" />
 
-    <TextView
-        android:id="@+id/tvTest"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_x="140dp"
-        android:layout_y="90dp"
-        android:text="TextView"
-        android:textSize="24sp"/>
-
 </AbsoluteLayout>
 
 

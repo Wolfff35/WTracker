@@ -38,8 +38,8 @@ LocationManager mLocationManager;
 
         //================
         mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-        TextView tvTest = (TextView)findViewById(R.id.tvTest);
-        tvTest.setText("RRRRRRRRRRRRRRRRRRRRRRRRR");
+        ///TextView tvTest = (TextView)findViewById(R.id.tvTest);
+        //tvTest.setText("RRRRRRRRRRRRRRRRRRRRRRRRR");
     }
 
     @Override
