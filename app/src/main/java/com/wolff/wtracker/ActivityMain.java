@@ -15,6 +15,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
 
 public class ActivityMain extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -37,7 +38,8 @@ LocationManager mLocationManager;
 
         //================
         mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-
+        TextView tvTest = (TextView)findViewById(R.id.tvTest);
+        tvTest.setText("RRRRRRRRRRRRRRRRRRRRRRRRR");
     }
 
     @Override
@@ -97,7 +99,7 @@ LocationManager mLocationManager;
         return true;
     }
     //===============
-    private LocationListener locationListener = new LocationListener() {
+/*    private LocationListener locationListener = new LocationListener() {
         @Override
         public void onLocationChanged(Location location) {
 
@@ -117,5 +119,7 @@ LocationManager mLocationManager;
         public void onProviderDisabled(String provider) {
 
         }
-    }
+    };
+    */
 }
+//https://habrahabr.ru/post/257443/
