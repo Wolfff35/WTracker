@@ -1,12 +1,10 @@
 package com.wolff.wtracker;
 
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
+import android.Manifest;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.view.View;
+import android.support.v4.app.ActivityCompat;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -15,11 +13,27 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.TextView;
+
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.wolff.wtracker.localdb.DataLab;
+import com.wolff.wtracker.online.OnlineDataLab;
+import com.wolff.wtracker.model.WCoord;
+import com.wolff.wtracker.model.WUser;
+import com.wolff.wtracker.tools.Debug;
+import com.wolff.wtracker.tools.OtherTools;
+
+import java.util.ArrayList;
+import java.util.Map;
 
 public class ActivityMain extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
-LocationManager mLocationManager;
+        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback {
+
+    private SupportMapFragment mapFragment;
+    private Map<WUser,WCoord> mLastUserCoordinates;
+    private ArrayList<WUser> mUsers;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -30,16 +44,30 @@ LocationManager mLocationManager;
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.setDrawerListener(toggle);
+        drawer.addDrawerListener(toggle);
         toggle.syncState();
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
         //================
-        mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-        ///TextView tvTest = (TextView)findViewById(R.id.tvTest);
-        //tvTest.setText("RRRRRRRRRRRRRRRRRRRRRRRRR");
+        mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+
+        if (!OtherTools.isServiceRunning(getApplicationContext(), WTrackerServise.class)) {
+            Intent intent = new Intent(getApplicationContext(), WTrackerServise.class);
+            startService(intent);
+            Debug.Log("RUN", "Servise!");
+        }
+        DataLab dataLab = DataLab.get(getApplicationContext());
+        OnlineDataLab onlineDataLab = OnlineDataLab.get(getApplicationContext());
+
+        mUsers = dataLab.getWUserList();
+        mLastUserCoordinates.clear();
+        for(WUser currUser:mUsers){
+            WCoord coord = onlineDataLab.getLastCoordinates(currUser);
+            mLastUserCoordinates.put(currUser,coord);
+        }
     }
 
     @Override
@@ -82,44 +110,32 @@ LocationManager mLocationManager;
 
         if (id == R.id.nav_camera) {
             // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
-    //===============
-/*    private LocationListener locationListener = new LocationListener() {
-        @Override
-        public void onLocationChanged(Location location) {
 
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        googleMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
         }
+        googleMap.setMyLocationEnabled(true);
+        googleMap.setTrafficEnabled(true);
+        googleMap.setIndoorEnabled(true);
+        googleMap.setBuildingsEnabled(true);
+        googleMap.getUiSettings().setZoomControlsEnabled(true);
+    }
 
-        @Override
-        public void onStatusChanged(String provider, int status, Bundle extras) {
-
-        }
-
-        @Override
-        public void onProviderEnabled(String provider) {
-
-        }
-
-        @Override
-        public void onProviderDisabled(String provider) {
-
-        }
-    };
-    */
 }
 //https://habrahabr.ru/post/257443/
