@@ -48,8 +48,8 @@ public class WTrackerServise extends Service {
     }
 
     public int onStartCommand(Intent intent, int flags, int startId) {
-        getCoordinatesAndWriteLocal();
-        sendCoordsToServer();
+    //    getCoordinatesAndWriteLocal();
+    //    sendCoordsToServer();
         //return super.onStartCommand(intent, flags, startId);
         Debug.Log("SERVICE", "onStartCommand");
         return START_STICKY;

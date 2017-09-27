@@ -14,7 +14,8 @@ public class DbSchema {
             Table_Coords.Cols.DATE          +" TEXT, "+
             Table_Coords.Cols.ID_USER       +" TEXT, "+
             Table_Coords.Cols.COORD_TYPE    +" TEXT, "+
-            Table_Coords.Cols.COORD         +" TEXT, "+
+            Table_Coords.Cols.COORD_LAT       +" TEXT, "+
+            Table_Coords.Cols.COORD_LON       +" TEXT, "+
             "FOREIGN KEY ("+ Table_Coords.Cols.ID_USER+
             ") REFERENCES "+ Table_Users.TABLE_NAME+"("+
             Table_Users.Cols.ID_USER+")"+
@@ -25,7 +26,7 @@ public class DbSchema {
             Table_Users.Cols.ID_USER        +" TEXT PRIMARY KEY NOT NULL, "+
             Table_Users.Cols.NAME +" TEXT, "+
             Table_Users.Cols.PHONE +" TEXT, "+
-            Table_Users.Cols.IMEI_PHONE +" TEXT, "+
+            Table_Users.Cols.IMEI_PHONE +" TEXT "+
             ")";
 
     //==================================================================================================
@@ -37,7 +38,8 @@ public class DbSchema {
              public static final String ID          = "_id";
              public static final String DATE        = "_date";
              public static final String ID_USER     = "_id_user";
-             public static final String COORD       = "_coord";
+             public static final String COORD_LAT       = "_coord_lat";
+             public static final String COORD_LON       = "_coord_lon";
              public static final String COORD_TYPE  = "_type";
          }
 

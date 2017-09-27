@@ -3,9 +3,12 @@ package com.wolff.wtracker;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -13,6 +16,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -23,15 +27,19 @@ import com.wolff.wtracker.model.WCoord;
 import com.wolff.wtracker.model.WUser;
 import com.wolff.wtracker.tools.Debug;
 import com.wolff.wtracker.tools.OtherTools;
+import com.wolff.wtracker.tools.PermissionTools;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
+
+import static com.wolff.wtracker.tools.PermissionTools.PERMISSION_REQUEST_CODE;
 
 public class ActivityMain extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback {
-
-    private SupportMapFragment mapFragment;
-    private Map<WUser,WCoord> mLastUserCoordinates;
+    private GoogleMap mMap;
+    private SupportMapFragment mMapFragment;
+    private Map<WUser, WCoord> mLastUserCoordinates = new HashMap<>();
     private ArrayList<WUser> mUsers;
 
     @Override
@@ -51,8 +59,18 @@ public class ActivityMain extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
         //================
-        mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
+        PermissionTools permissionTools = new PermissionTools();
+        if (!permissionTools.hasPermissions(getApplicationContext())) {
+            permissionTools.requestPermissionWithRationale(this);
+        }
+        //mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        //mapFragment.getMapAsync(this);
+        mMapFragment = SupportMapFragment.newInstance();
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.add(R.id.item_container, mMapFragment);
+        ft.commit();
+        mMapFragment.getMapAsync(this);
+
 
         if (!OtherTools.isServiceRunning(getApplicationContext(), WTrackerServise.class)) {
             Intent intent = new Intent(getApplicationContext(), WTrackerServise.class);
@@ -64,9 +82,9 @@ public class ActivityMain extends AppCompatActivity
 
         mUsers = dataLab.getWUserList();
         mLastUserCoordinates.clear();
-        for(WUser currUser:mUsers){
+        for (WUser currUser : mUsers) {
             WCoord coord = onlineDataLab.getLastCoordinates(currUser);
-            mLastUserCoordinates.put(currUser,coord);
+            mLastUserCoordinates.put(currUser, coord);
         }
     }
 
@@ -89,12 +107,7 @@ public class ActivityMain extends AppCompatActivity
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
         }
@@ -119,23 +132,63 @@ public class ActivityMain extends AppCompatActivity
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        googleMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
+        mMap = googleMap;
+        if (new PermissionTools().hasPermissions(getApplicationContext())) {
+            setupMap();
         }
-        googleMap.setMyLocationEnabled(true);
-        googleMap.setTrafficEnabled(true);
-        googleMap.setIndoorEnabled(true);
-        googleMap.setBuildingsEnabled(true);
-        googleMap.getUiSettings().setZoomControlsEnabled(true);
     }
 
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        boolean allowed = true;
+
+        switch (requestCode) {
+            case PERMISSION_REQUEST_CODE:
+
+                for (int res : grantResults) {
+                    // if user granted all permissions.
+                    allowed = allowed && (res == PackageManager.PERMISSION_GRANTED);
+                }
+
+                break;
+            default:
+                // if user not granted permissions.
+                allowed = false;
+                break;
+        }
+
+        if (allowed) {
+            //user granted all permissions we can perform our task.
+            setupMap();
+        } else {
+            // we will give warning to user that they haven't granted permissions.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                boolean showReq = false;
+                for (int i = 0; i < permissions.length; i++) {
+                    if (shouldShowRequestPermissionRationale(permissions[i])) {
+                        showReq = true;
+                    }
+                }
+                if (showReq) {
+                    Toast.makeText(this, "Permissions denied.", Toast.LENGTH_LONG).show();
+                    // } else {
+                    PermissionTools permissionTools = new PermissionTools();
+                    permissionTools.showPermissionSnackbar(this);
+                }
+            }
+        }
+    }
+
+    private void setupMap() {
+        mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+        mMap.setMyLocationEnabled(true);
+        mMap.setTrafficEnabled(true);
+        mMap.setIndoorEnabled(true);
+        mMap.setBuildingsEnabled(true);
+        mMap.getUiSettings().setZoomControlsEnabled(true);
+
+    }
 }
 //https://habrahabr.ru/post/257443/

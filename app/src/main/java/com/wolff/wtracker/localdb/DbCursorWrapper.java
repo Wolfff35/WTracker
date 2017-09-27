@@ -33,7 +33,8 @@ class DbCursorWrapper extends CursorWrapper {
         coord.set_date(dft.dateFromString(getString(getColumnIndex(DbSchema.Table_Coords.Cols.DATE)),DateFormatTools.DATE_FORMAT_SAVE));
         coord.set_type(getString(getColumnIndex(DbSchema.Table_Coords.Cols.COORD_TYPE)));
         //coord.set_user(getString(getColumnIndex(DbSchema.Table_Coords.Cols.ID_USER)));
-        coord.set_coord(getString(getColumnIndex(DbSchema.Table_Coords.Cols.COORD)));
+        coord.set_coord_lat(getString(getColumnIndex(DbSchema.Table_Coords.Cols.COORD_LAT)));
+        coord.set_coord_lon(getString(getColumnIndex(DbSchema.Table_Coords.Cols.COORD_LON)));
         return coord;
     }
  }

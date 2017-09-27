@@ -10,7 +10,8 @@ public class WCoord{
     private double _id;
     private Date _date;
     private WUser _user;
-    private String _coord;
+    private String _coord_lat;
+    private String _coord_lon;
     private String _type;
 
     public WCoord(){
@@ -41,12 +42,20 @@ public class WCoord{
         this._user = _user;
     }
 
-    public String get_coord() {
-        return _coord;
+    public String get_coord_lat() {
+        return _coord_lat;
     }
 
-    public void set_coord(String _coord) {
-        this._coord = _coord;
+    public void set_coord_lat(String _coord) {
+        this._coord_lat = _coord;
+    }
+
+    public String get_coord_lon() {
+        return _coord_lon;
+    }
+
+    public void set_coord_lon(String _coord) {
+        this._coord_lon = _coord;
     }
 
     public String get_type() {

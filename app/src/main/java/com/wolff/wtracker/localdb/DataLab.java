@@ -53,7 +53,8 @@ public class DataLab {
         ContentValues values = new ContentValues();
         DateFormatTools dft = new DateFormatTools();
         values.put(DbSchema.Table_Coords.Cols.DATE,dft.dateToString(coord.get_date(),DateFormatTools.DATE_FORMAT_SAVE));
-        values.put(DbSchema.Table_Coords.Cols.COORD,coord.get_coord());
+        values.put(DbSchema.Table_Coords.Cols.COORD_LAT,coord.get_coord_lat());
+        values.put(DbSchema.Table_Coords.Cols.COORD_LON,coord.get_coord_lon());
         values.put(DbSchema.Table_Coords.Cols.COORD_TYPE,coord.get_type());
         values.put(DbSchema.Table_Coords.Cols.ID_USER,coord.get_user().get_id_user());
         return values;

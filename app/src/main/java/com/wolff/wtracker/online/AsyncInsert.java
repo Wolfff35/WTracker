@@ -16,7 +16,7 @@ import static com.wolff.wtracker.online.AsyncRequest.MSSQL_PASS;
 /**
  * Created by wolff on 25.09.2017.
  */
-public final class AsyncInsert extends AsyncTask<String, Void, JSONArray> {
+public final class AsyncInsert {/*extends AsyncTask<String, Void, JSONArray> {
 
     private static final String REMOTE_TABLE = "dbo.TableName";
     private static final String SQL = "INSERT into " + REMOTE_TABLE + "([" +
@@ -66,6 +66,6 @@ public final class AsyncInsert extends AsyncTask<String, Void, JSONArray> {
             e.printStackTrace();
         }
         return resultSet;
-    }
+    }*/
 }
     //https://habrahabr.ru/post/206790/
