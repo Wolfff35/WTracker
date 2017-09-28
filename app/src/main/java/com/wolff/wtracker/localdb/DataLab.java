@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteDatabase;
 import com.wolff.wtracker.model.WCoord;
 import com.wolff.wtracker.model.WUser;
 import com.wolff.wtracker.tools.DateFormatTools;
+import com.wolff.wtracker.tools.Debug;
 
 import java.util.ArrayList;
 
@@ -31,7 +32,45 @@ public class DataLab {
         }
         return sDataLab;
     }
-//--------------------------------------------------------------------------------------------------
+
+
+    //--------------------------------------------------------------------------------------------------
+    private DbCursorWrapper queryLastCoords(){
+        String selection = null;
+        String[] selectionArgs = null;
+        String[] columns = null;
+        String groupBy = null;
+        String having = null;
+        String orderBy = DbSchema.Table_Coords.Cols.DATE+" DESC";
+        Cursor cursor = mDatabase.query(DbSchema.Table_LastCoords.TABLE_NAME,
+                columns,
+                selection,
+                selectionArgs,
+                groupBy,
+                having,
+                orderBy);
+        return new DbCursorWrapper(cursor);
+    }
+    public int last_coord_update(WCoord coord){
+        ContentValues values = getContentValues_WCoords(coord);
+        String table = DbSchema.Table_LastCoords.TABLE_NAME;
+        int row = mDatabase.update(
+                table,
+                values,
+                DbSchema.Table_Coords.Cols.ID_USER+" = ?",
+                new String[]{String.valueOf(coord.get_user().get_id_user())}
+        );
+        Debug.Log("LAST COORD","UPDATED");
+        return row;
+    }
+    public void last_coord_add(WCoord coord) {
+        ContentValues values = getContentValues_WCoords(coord);
+        mDatabase.insert(DbSchema.Table_LastCoords.TABLE_NAME, null, values);
+        Debug.Log("LAST COORD","ADDED");
+    }
+
+
+    //--------------------------------------------------------------------------------------------------
     private DbCursorWrapper queryWCoords(){
         String selection = null;
         String[] selectionArgs = null;
@@ -39,7 +78,7 @@ public class DataLab {
         String groupBy = null;
         String having = null;
         String orderBy = DbSchema.Table_Coords.Cols.DATE+" DESC";
-         Cursor cursor = mDatabase.query(DbSchema.Table_Coords.TABLE_NAME,
+        Cursor cursor = mDatabase.query(DbSchema.Table_Coords.TABLE_NAME,
                 columns,
                 selection,
                 selectionArgs,
@@ -55,14 +94,20 @@ public class DataLab {
         values.put(DbSchema.Table_Coords.Cols.DATE,dft.dateToString(coord.get_date(),DateFormatTools.DATE_FORMAT_SAVE));
         values.put(DbSchema.Table_Coords.Cols.COORD_LAT,coord.get_coord_lat());
         values.put(DbSchema.Table_Coords.Cols.COORD_LON,coord.get_coord_lon());
-        values.put(DbSchema.Table_Coords.Cols.COORD_TYPE,coord.get_type());
-        values.put(DbSchema.Table_Coords.Cols.ID_USER,coord.get_user().get_id_user());
+        values.put(DbSchema.Table_Coords.Cols.COORD_PROVIDER,coord.get_provider());
+        if(coord.get_user()!=null) {
+            values.put(DbSchema.Table_Coords.Cols.ID_USER, coord.get_user().get_id_user());
+        }
+        values.put(DbSchema.Table_Coords.Cols.COORD_ACCURACY,coord.get_accuracy());
+        values.put(DbSchema.Table_Coords.Cols.COORD_ALTITUDE,coord.get_altitude());
+        values.put(DbSchema.Table_Coords.Cols.COORD_BEARING,coord.get_bearing());
         return values;
     }
 
     public void coord_add(WCoord coord) {
         ContentValues values = getContentValues_WCoords(coord);
         mDatabase.insert(DbSchema.Table_Coords.TABLE_NAME, null, values);
+        Debug.Log("COORD","ADDED");
     }
 
     public void coord_delete(WCoord coord){
@@ -71,6 +116,7 @@ public class DataLab {
                 DbSchema.Table_Coords.Cols.ID+" =?",
                 new String[]{String.valueOf(coord.get_id())}
         );
+        Debug.Log("COORD","DELETED");
     }
     //--------------------------------------------------------------------------------------------------
     private DbCursorWrapper queryWUsers(){
@@ -97,6 +143,7 @@ public class DataLab {
         values.put(DbSchema.Table_Users.Cols.ID_USER,user.get_id_user());
         values.put(DbSchema.Table_Users.Cols.NAME,user.get_name());
         values.put(DbSchema.Table_Users.Cols.PASSWORD,user.get_password());
+        values.put(DbSchema.Table_Users.Cols.AVATAR_PATH,user.get_avatar_path());
         return values;
     }
 

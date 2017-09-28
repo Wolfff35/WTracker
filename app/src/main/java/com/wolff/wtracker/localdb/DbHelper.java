@@ -10,7 +10,7 @@ import android.util.Log;
  */
 
 class DbHelper extends SQLiteOpenHelper {
-    private  static final int VERSION = 2;
+    private  static final int VERSION = 1;
 
     public DbHelper(Context context) {
         super(context, DbSchema.DATABASE_NAME, null, VERSION);
@@ -20,6 +20,7 @@ class DbHelper extends SQLiteOpenHelper {
         public void onCreate(SQLiteDatabase db) {
             db.execSQL(DbSchema.CREATE_TABLE_USERS);
             db.execSQL(DbSchema.CREATE_TABLE_COORDS);
+            db.execSQL(DbSchema.CREATE_TABLE_LAST_COORDS);
             Log.e("CREATE TABLES","CREATED!");
         }
 

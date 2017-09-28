@@ -18,9 +18,12 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.wolff.wtracker.localdb.DataLab;
 import com.wolff.wtracker.online.OnlineDataLab;
 import com.wolff.wtracker.model.WCoord;
@@ -182,13 +185,17 @@ public class ActivityMain extends AppCompatActivity
     }
 
     private void setupMap() {
-        mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+       // mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
         mMap.setMyLocationEnabled(true);
         mMap.setTrafficEnabled(true);
         mMap.setIndoorEnabled(true);
         mMap.setBuildingsEnabled(true);
         mMap.getUiSettings().setZoomControlsEnabled(true);
-
+        mMap.getUiSettings().setMyLocationButtonEnabled(true);
+        LatLng sydney = new LatLng(50.5, 30.5);
+        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Kiev"));
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
     }
 }
 //https://habrahabr.ru/post/257443/
+//https://developers.google.com/maps/documentation/android-api/start?hl=ru

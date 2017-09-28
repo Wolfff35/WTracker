@@ -1,5 +1,7 @@
 package com.wolff.wtracker.model;
 
+import android.location.Location;
+
 import java.util.Date;
 
 /**
@@ -10,14 +12,34 @@ public class WCoord{
     private double _id;
     private Date _date;
     private WUser _user;
-    private String _coord_lat;
-    private String _coord_lon;
-    private String _type;
+    private double _coord_lat;
+    private double _coord_lon;
+    private String _provider;
+
+    private double accuracy; //точность
+    private double altitude; //высота над уровнем моря
+    private double bearing;
+
 
     public WCoord(){
 
     }
+    public WCoord(Location loc,WUser user){
+        if(loc!=null) {
+            this.bearing = loc.getBearing();
+            this.altitude = loc.getAltitude();
+            this.accuracy = loc.getAccuracy();
+            this._provider = loc.getProvider();
+            this._coord_lat = loc.getLatitude();
+            this._coord_lon = loc.getLongitude();
+            this._date = new Date(loc.getTime());
+            if(user!=null) {
+                this._user = user;
+            }
 
+        }
+
+    }
     public double get_id() {
         return _id;
     }
@@ -42,27 +64,51 @@ public class WCoord{
         this._user = _user;
     }
 
-    public String get_coord_lat() {
+    public double get_coord_lat() {
         return _coord_lat;
     }
 
-    public void set_coord_lat(String _coord) {
+    public void set_coord_lat(double _coord) {
         this._coord_lat = _coord;
     }
 
-    public String get_coord_lon() {
+    public double get_coord_lon() {
         return _coord_lon;
     }
 
-    public void set_coord_lon(String _coord) {
+    public void set_coord_lon(double _coord) {
         this._coord_lon = _coord;
     }
 
-    public String get_type() {
-        return _type;
+    public String get_provider() {
+        return _provider;
     }
 
-    public void set_type(String _type) {
-        this._type = _type;
+    public void set_provider(String _provider) {
+        this._provider = _provider;
+    }
+
+    public double get_accuracy() {
+        return accuracy;
+    }
+
+    public void set_accuracy(double accuracy) {
+        this.accuracy = accuracy;
+    }
+
+    public double get_altitude() {
+        return altitude;
+    }
+
+    public void set_altitude(double altitude) {
+        this.altitude = altitude;
+    }
+
+    public double get_bearing() {
+        return bearing;
+    }
+
+    public void set_bearing(double bearing) {
+        this.bearing = bearing;
     }
 }

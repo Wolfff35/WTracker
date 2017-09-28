@@ -25,16 +25,20 @@ class DbCursorWrapper extends CursorWrapper {
         user.set_name(getString(getColumnIndex(DbSchema.Table_Users.Cols.NAME)));
         user.set_password(getString(getColumnIndex(DbSchema.Table_Users.Cols.PASSWORD)));
         user.set_phone(getString(getColumnIndex(DbSchema.Table_Users.Cols.PHONE)));
+        user.setAvatar_path(getString(getColumnIndex(DbSchema.Table_Users.Cols.AVATAR_PATH)));
         return user;
      }
     public WCoord getWCoord(){
         WCoord coord = new WCoord();
         DateFormatTools dft = new DateFormatTools();
         coord.set_date(dft.dateFromString(getString(getColumnIndex(DbSchema.Table_Coords.Cols.DATE)),DateFormatTools.DATE_FORMAT_SAVE));
-        coord.set_type(getString(getColumnIndex(DbSchema.Table_Coords.Cols.COORD_TYPE)));
+        coord.set_provider(getString(getColumnIndex(DbSchema.Table_Coords.Cols.COORD_PROVIDER)));
         //coord.set_user(getString(getColumnIndex(DbSchema.Table_Coords.Cols.ID_USER)));
-        coord.set_coord_lat(getString(getColumnIndex(DbSchema.Table_Coords.Cols.COORD_LAT)));
-        coord.set_coord_lon(getString(getColumnIndex(DbSchema.Table_Coords.Cols.COORD_LON)));
+        coord.set_coord_lat(getDouble(getColumnIndex(DbSchema.Table_Coords.Cols.COORD_LAT)));
+        coord.set_coord_lon(getDouble(getColumnIndex(DbSchema.Table_Coords.Cols.COORD_LON)));
+        coord.set_accuracy(getDouble(getColumnIndex(DbSchema.Table_Coords.Cols.COORD_ACCURACY)));
+        coord.set_altitude(getDouble(getColumnIndex(DbSchema.Table_Coords.Cols.COORD_ALTITUDE)));
+        coord.set_bearing(getDouble(getColumnIndex(DbSchema.Table_Coords.Cols.COORD_BEARING)));
         return coord;
     }
  }

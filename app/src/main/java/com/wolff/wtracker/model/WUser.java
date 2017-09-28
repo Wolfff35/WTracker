@@ -10,9 +10,17 @@ public class WUser {
     private String _phone;
     private String _imei_phone;
     private String _password;
-
+    private String avatar_path;
     public WUser(){
 
+    }
+
+    public String get_avatar_path() {
+        return avatar_path;
+    }
+
+    public void setAvatar_path(String avatar_path) {
+        this.avatar_path = avatar_path;
     }
 
     public String get_id_user() {
