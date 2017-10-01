@@ -21,7 +21,11 @@ import com.wolff.wtracker.R;
 
 public class PermissionTools {
     public static final int PERMISSION_REQUEST_CODE = 123;
-    private String[] permissions = new String[]{Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION};
+    private String[] permissions = new String[]{Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.ACCESS_NETWORK_STATE,
+            Manifest.permission.INTERNET,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE};
     public boolean hasPermissions(Context context){
         int res = 0;
         for (String perms : permissions){

@@ -11,7 +11,7 @@ import java.util.Date;
 public class WCoord{
     private double _id;
     private Date _date;
-    private WUser _user;
+//    private WUser _user;
     private double _coord_lat;
     private double _coord_lon;
     private String _provider;
@@ -33,10 +33,9 @@ public class WCoord{
             this._coord_lat = loc.getLatitude();
             this._coord_lon = loc.getLongitude();
             this._date = new Date(loc.getTime());
-            if(user!=null) {
-                this._user = user;
-            }
-
+  //          if(user!=null) {
+  //              this._user = user;
+  //          }
         }
 
     }
@@ -56,14 +55,14 @@ public class WCoord{
         this._date = _date;
     }
 
-    public WUser get_user() {
+/*    public WUser get_user() {
         return _user;
     }
 
     public void set_user(WUser _user) {
         this._user = _user;
     }
-
+*/
     public double get_coord_lat() {
         return _coord_lat;
     }

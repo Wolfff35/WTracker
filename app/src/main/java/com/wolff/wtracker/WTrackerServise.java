@@ -17,9 +17,15 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 
+import com.wolff.wtracker.localdb.DataLab;
+import com.wolff.wtracker.model.WCoord;
 import com.wolff.wtracker.model.WUser;
 import com.wolff.wtracker.tools.Debug;
 import com.wolff.wtracker.tools.PermissionTools;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.wolff.wtracker.tools.PreferencesTools.IS_DEBUG;
 
@@ -31,6 +37,10 @@ public class WTrackerServise extends Service {
     //private LocationManager locationManager;
     LocationService mLocationService;
     WUser mCurrentUser;
+    //ArrayList<WCoord> mLastUserCoordinates = new ArrayList<>();
+    private Map<WUser,WCoord> mLastUserCoordinates = new HashMap<>();
+    ArrayList<WUser> mUsers = new ArrayList<>();
+
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -53,7 +63,10 @@ public class WTrackerServise extends Service {
         if (IS_DEBUG){
             mCurrentUser=new WUser();
             mCurrentUser.set_id_user("380996649531");
+
         }
+        DataLab dataLab = DataLab.get(getApplicationContext());
+        mLastUserCoordinates = dataLab.getLastCoords(mUsers);
         mLocationService = LocationService.getLocationManager(getApplicationContext(),mCurrentUser);
 
     }

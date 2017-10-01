@@ -22,7 +22,10 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.wolff.wtracker.localdb.DataLab;
 import com.wolff.wtracker.online.OnlineDataLab;
@@ -37,14 +40,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.wolff.wtracker.tools.PermissionTools.PERMISSION_REQUEST_CODE;
+import static com.wolff.wtracker.tools.PreferencesTools.IS_DEBUG;
 
 public class ActivityMain extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback {
+
     private GoogleMap mMap;
     private SupportMapFragment mMapFragment;
-    private Map<WUser, WCoord> mLastUserCoordinates = new HashMap<>();
-    private ArrayList<WUser> mUsers;
 
+    private Map<WUser,WCoord> mLastUserCoordinates = new HashMap<>();
+    private ArrayList<WUser> mUsers = new ArrayList<>();
+    private WUser mCurrentUser;
+    private Map<WUser,Marker> mMarkers = new HashMap<>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -62,12 +69,20 @@ public class ActivityMain extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
         //================
+        DataLab dataLab = DataLab.get(getApplicationContext());
+        OnlineDataLab onlineDataLab = OnlineDataLab.get(getApplicationContext());
+
+        mUsers = dataLab.getWUserList();
+        mLastUserCoordinates = dataLab.getLastCoords(mUsers);
+        mCurrentUser = dataLab.getCurrentUser(mUsers);
+        if (mCurrentUser == null) {
+            registerUser();
+        }
+
         PermissionTools permissionTools = new PermissionTools();
         if (!permissionTools.hasPermissions(getApplicationContext())) {
             permissionTools.requestPermissionWithRationale(this);
         }
-        //mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-        //mapFragment.getMapAsync(this);
         mMapFragment = SupportMapFragment.newInstance();
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.add(R.id.item_container, mMapFragment);
@@ -75,19 +90,11 @@ public class ActivityMain extends AppCompatActivity
         mMapFragment.getMapAsync(this);
 
 
-        if (!OtherTools.isServiceRunning(getApplicationContext(), WTrackerServise.class)) {
+        if (!OtherTools.isServiceRunning(getApplicationContext(), WTrackerServise.class)
+                &&mCurrentUser!=null) {
             Intent intent = new Intent(getApplicationContext(), WTrackerServise.class);
             startService(intent);
             Debug.Log("RUN", "Servise!");
-        }
-        DataLab dataLab = DataLab.get(getApplicationContext());
-        OnlineDataLab onlineDataLab = OnlineDataLab.get(getApplicationContext());
-
-        mUsers = dataLab.getWUserList();
-        mLastUserCoordinates.clear();
-        for (WUser currUser : mUsers) {
-            WCoord coord = onlineDataLab.getLastCoordinates(currUser);
-            mLastUserCoordinates.put(currUser, coord);
         }
     }
 
@@ -112,7 +119,9 @@ public class ActivityMain extends AppCompatActivity
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_settings) {
-            return true;
+            mLastUserCoordinates=DataLab.get(getApplicationContext()).getLastCoords(mUsers);
+            drawLastCoords();
+                return true;
         }
 
         return super.onOptionsItemSelected(item);
@@ -138,7 +147,9 @@ public class ActivityMain extends AppCompatActivity
         mMap = googleMap;
         if (new PermissionTools().hasPermissions(getApplicationContext())) {
             setupMap();
+            Debug.Log("onMapReady","Ready & has permissions");
         }
+        Debug.Log("onMapReady","READY!!!");
     }
 
 
@@ -185,16 +196,52 @@ public class ActivityMain extends AppCompatActivity
     }
 
     private void setupMap() {
-       // mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+        // mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
         mMap.setMyLocationEnabled(true);
         mMap.setTrafficEnabled(true);
         mMap.setIndoorEnabled(true);
         mMap.setBuildingsEnabled(true);
         mMap.getUiSettings().setZoomControlsEnabled(true);
         mMap.getUiSettings().setMyLocationButtonEnabled(true);
-        LatLng sydney = new LatLng(50.5, 30.5);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Kiev"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+        drawLastCoords();
+    }
+
+    private void drawLastCoords(){
+        //mLastUserCoordinates = DataLab.get(getApplicationContext()).getLastCoords();
+        for (Map.Entry<WUser, WCoord> entry : mLastUserCoordinates.entrySet()) {
+            WCoord coord = entry.getValue();
+            WUser user = entry.getKey();
+            LatLng ll = new LatLng(coord.get_coord_lat(),coord.get_coord_lon());
+            if(mMarkers.get(user)!=null){
+                mMarkers.get(user).setPosition(ll);
+                mMarkers.get(user).setTitle(user.get_name()+" "+user.get_id_user());
+                mMarkers.get(user).setSnippet("lat: "+coord.get_coord_lat()+";  lng: "+coord.get_coord_lon());
+                Debug.Log("MARKER","UPDATE");
+            }else {
+                MarkerOptions mo = new MarkerOptions();
+                mo.position(ll);
+                mo.title(user.get_name()+" "+user.get_id_user());
+                mo.snippet("lat: "+coord.get_coord_lat()+";  lng: "+coord.get_coord_lon());
+                mo.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_marker));
+                Marker marker = mMap.addMarker(mo);
+                mMarkers.put(user,marker);
+                Debug.Log("MARKER","ADD");
+            }
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(ll));
+            Debug.Log("SHOW",""+user.get_id_user());
+        }
+
+    }
+    private void registerUser() {
+        if (IS_DEBUG) {
+            WUser currentUser = new WUser();
+            currentUser.set_id_user("380996649531");
+            currentUser.set_currentUser(true);
+            DataLab dataLab = DataLab.get(getApplicationContext());
+            dataLab.user_add(currentUser);
+            mCurrentUser=currentUser;
+            Debug.Log("REGISTER", "USER CURRENT----------------------------");
+        }
     }
 }
 //https://habrahabr.ru/post/257443/

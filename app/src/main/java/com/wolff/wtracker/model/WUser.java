@@ -10,17 +10,27 @@ public class WUser {
     private String _phone;
     private String _imei_phone;
     private String _password;
-    private String avatar_path;
+    private String _avatar_path;
+    private boolean _currentUser;
+
+
     public WUser(){
 
     }
-
-    public String get_avatar_path() {
-        return avatar_path;
+    public boolean is_currentUser() {
+        return _currentUser;
     }
 
-    public void setAvatar_path(String avatar_path) {
-        this.avatar_path = avatar_path;
+    public void set_currentUser(boolean _currentUser) {
+        this._currentUser = _currentUser;
+    }
+
+    public String get_avatar_path() {
+        return _avatar_path;
+    }
+
+    public void set_avatar_path(String _avatar_path) {
+        this._avatar_path = _avatar_path;
     }
 
     public String get_id_user() {
@@ -32,7 +42,11 @@ public class WUser {
     }
 
     public String get_name() {
-        return _name;
+        if(_name!=null) {
+            return _name;
+        }else {
+            return "";
+        }
     }
 
     public void set_name(String _name) {

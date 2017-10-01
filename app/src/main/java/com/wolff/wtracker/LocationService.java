@@ -30,18 +30,13 @@ public class LocationService implements LocationListener {
     //The minimum time beetwen updates in milliseconds
     private static final long MIN_TIME_BW_UPDATES = 0;//1000 * 60 * 1; // 1 minute
 
-    //private final static boolean forceNetwork = false;
-
     private static LocationService instance = null;
 
     private LocationManager locationManager;
     private Location mLocation;
-    //private double longitude;
-    //private double latitude;
 
     private boolean isGPSEnabled;
     private boolean isNetworkEnabled;
-    //private boolean locationServiceAvailable;
 
     /**
      * Singleton implementation
@@ -85,7 +80,8 @@ public class LocationService implements LocationListener {
     @Override
     public void onLocationChanged(Location location) {
         // do stuff here with location object
-        updateCoords();
+        mLocation=location;
+        writeToLocalDB();
     }
 
     @Override
@@ -143,7 +139,6 @@ public class LocationService implements LocationListener {
 
             if (locationManager != null) {
                 mLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-                //updateCoordinates();
             }
         } else if (isNetworkEnabled) {
             locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
@@ -151,23 +146,22 @@ public class LocationService implements LocationListener {
                     MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
             if (locationManager != null) {
                 mLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-                //updateCoordinates();
             }
         }//end if
         writeToLocalDB();
-        Debug.Log("UPDATE", "COORDS: lat: " + mLocation.getLatitude() + "; lon: " + mLocation.getLongitude() + "; provider = " + mLocation.getProvider());
-        Debug.Log("UPDATE", "COORDS: accuracy: " + mLocation.getAccuracy() + "; altitude: " + mLocation.getAltitude() + "; bearing = " + mLocation.getBearing());
-        Debug.Log("UPDATE", "COORDS: ElapsedRealtimeNanos: " + mLocation.getElapsedRealtimeNanos() + "; speed: " + mLocation.getSpeed() + "; time = " + mLocation.getTime());
-        Debug.Log("=", "================================================================================");
     }
 
     private void writeToLocalDB() {
         DataLab dataLab = DataLab.get(mContext);
         WCoord coord = new WCoord(mLocation, mCurrentUser);
         dataLab.coord_add(coord);
-        int l = dataLab.last_coord_update(coord);
+        int l = dataLab.last_coord_update(mCurrentUser,coord);
         if (l == 0) {
             dataLab.last_coord_add(coord);
         }
+        Debug.Log("UPDATE", "COORDS: lat: " + mLocation.getLatitude() + "; lon: " + mLocation.getLongitude() + "; provider = " + mLocation.getProvider());
+        Debug.Log("UPDATE", "COORDS: accuracy: " + mLocation.getAccuracy() + "; altitude: " + mLocation.getAltitude() + "; bearing = " + mLocation.getBearing());
+        Debug.Log("UPDATE", "COORDS: ElapsedRealtimeNanos: " + mLocation.getElapsedRealtimeNanos() + "; speed: " + mLocation.getSpeed() + "; time = " + mLocation.getTime());
+        Debug.Log("=", "================================================================================");
     }
 }
