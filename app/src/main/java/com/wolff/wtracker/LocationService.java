@@ -24,6 +24,7 @@ import static android.location.LocationProvider.AVAILABLE;
 public class LocationService implements LocationListener {
     private Context mContext;
     private WUser mCurrentUser;
+    private WCoord mLastCoord;
     //The minimum distance to change updates in meters
     private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 5; // 10 meters
 
@@ -148,20 +149,36 @@ public class LocationService implements LocationListener {
                 mLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
             }
         }//end if
-        writeToLocalDB();
+        if(mLocation!=null) {
+            writeToLocalDB();
+        }
     }
 
     private void writeToLocalDB() {
         DataLab dataLab = DataLab.get(mContext);
-        WCoord coord = new WCoord(mLocation, mCurrentUser);
-        dataLab.coord_add(coord);
-        int l = dataLab.last_coord_update(mCurrentUser,coord);
-        if (l == 0) {
-            dataLab.last_coord_add(coord);
+        WCoord coord = new WCoord(mLocation);
+        boolean write = false;
+        if(mLastCoord!=null){
+            if(mLastCoord.get_coord_lon()!=coord.get_coord_lon()|
+                    mLastCoord.get_coord_lat()!=coord.get_coord_lat()|
+                    mLastCoord.get_altitude()!=coord.get_altitude()|
+                    mLastCoord.get_accuracy()!=coord.get_accuracy()){
+                write=true;
+            }
+        }else {
+            write=true;
         }
-        Debug.Log("UPDATE", "COORDS: lat: " + mLocation.getLatitude() + "; lon: " + mLocation.getLongitude() + "; provider = " + mLocation.getProvider());
-        Debug.Log("UPDATE", "COORDS: accuracy: " + mLocation.getAccuracy() + "; altitude: " + mLocation.getAltitude() + "; bearing = " + mLocation.getBearing());
-        Debug.Log("UPDATE", "COORDS: ElapsedRealtimeNanos: " + mLocation.getElapsedRealtimeNanos() + "; speed: " + mLocation.getSpeed() + "; time = " + mLocation.getTime());
-        Debug.Log("=", "================================================================================");
+        if(write) {
+            dataLab.coord_add(mCurrentUser, coord);
+            int l = dataLab.last_coord_update(mCurrentUser, coord);
+            if (l == 0) {
+                dataLab.last_coord_add(mCurrentUser, coord);
+            }
+            Debug.Log("UPDATE", "COORDS: lat: " + mLocation.getLatitude() + "; lon: " + mLocation.getLongitude() + "; provider = " + mLocation.getProvider());
+            Debug.Log("UPDATE", "COORDS: accuracy: " + mLocation.getAccuracy() + "; altitude: " + mLocation.getAltitude() + "; bearing = " + mLocation.getBearing());
+            Debug.Log("UPDATE", "COORDS: ElapsedRealtimeNanos: " + mLocation.getElapsedRealtimeNanos() + "; speed: " + mLocation.getSpeed() + "; time = " + mLocation.getTime());
+            Debug.Log("=", "================================================================================");
+            mLastCoord=coord;
+        }
     }
 }

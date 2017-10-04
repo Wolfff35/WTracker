@@ -9,6 +9,7 @@ public class WUser {
     private String _name;
     private String _phone;
     private String _imei_phone;
+    private String _pin_for_access;
     private String _password;
     private String _avatar_path;
     private boolean _currentUser;
@@ -17,6 +18,15 @@ public class WUser {
     public WUser(){
 
     }
+
+    public String get_pin_for_access() {
+        return _pin_for_access;
+    }
+
+    public void set_pin_for_access(String _pin_for_access) {
+        this._pin_for_access = _pin_for_access;
+    }
+
     public boolean is_currentUser() {
         return _currentUser;
     }
@@ -75,5 +85,19 @@ public class WUser {
 
     public void set_password(String _password) {
         this._password = _password;
+    }
+
+    @Override
+    public String toString() {
+        return "WUser{" +
+                "_id_user='" + _id_user + '\'' +
+                ", _name='" + _name + '\'' +
+                ", _phone='" + _phone + '\'' +
+                ", _imei_phone='" + _imei_phone + '\'' +
+                ", _password='" + _password + '\'' +
+                ", _avatar_path='" + _avatar_path + '\'' +
+                ", _currentUser=" + _currentUser +
+                ", _pin_for_access=" + _pin_for_access +
+                '}';
     }
 }

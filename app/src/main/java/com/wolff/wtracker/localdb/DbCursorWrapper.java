@@ -8,6 +8,7 @@ import com.wolff.wtracker.model.WCoord;
 import com.wolff.wtracker.model.WUser;
 import com.wolff.wtracker.tools.DateFormatTools;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,10 +33,18 @@ class DbCursorWrapper extends CursorWrapper {
         user.set_phone(getString(getColumnIndex(DbSchema.Table_Users.Cols.PHONE)));
         user.set_avatar_path(getString(getColumnIndex(DbSchema.Table_Users.Cols.AVATAR_PATH)));
         user.set_currentUser(getInt(getColumnIndex(DbSchema.Table_Users.Cols.CURRENT))==1);
+      //TODO  user.set_pin_for_access(getString(getColumnIndex(DbSchema.Table_Users.Cols.PIN_FOR_ACCESS)));
         return user;
      }
-    public Map<WUser,WCoord> getWCoord(Context context, ArrayList<WUser> users){
+    public Map<WUser,WCoord> getWUserCoord(Context context, ArrayList<WUser> users){
         Map<WUser,WCoord> m = new HashMap<>();
+        WCoord coord = getWCoord();
+        DataLab dataLab = DataLab.get(context);
+        WUser user = dataLab.getUserById(getString(getColumnIndex(DbSchema.Table_Users.Cols.ID_USER)),users);
+        m.put(user,coord);
+        return m;
+    }
+    public WCoord getWCoord(){
         WCoord coord = new WCoord();
         DateFormatTools dft = new DateFormatTools();
         coord.set_date(dft.dateFromString(getString(getColumnIndex(DbSchema.Table_Coords.Cols.DATE)),DateFormatTools.DATE_FORMAT_SAVE));
@@ -45,11 +54,6 @@ class DbCursorWrapper extends CursorWrapper {
         coord.set_accuracy(getDouble(getColumnIndex(DbSchema.Table_Coords.Cols.COORD_ACCURACY)));
         coord.set_altitude(getDouble(getColumnIndex(DbSchema.Table_Coords.Cols.COORD_ALTITUDE)));
         coord.set_bearing(getDouble(getColumnIndex(DbSchema.Table_Coords.Cols.COORD_BEARING)));
-
-        DataLab dataLab = DataLab.get(context);
-        WUser user = dataLab.getUserById(getString(getColumnIndex(DbSchema.Table_Users.Cols.ID_USER)),users);
-
-        m.put(user,coord);
-        return m;
+        return coord;
     }
  }

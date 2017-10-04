@@ -57,7 +57,7 @@ public class DataLab {
 
     public int last_coord_update(WUser user,WCoord coord) {
         if (coord != null) {
-            ContentValues values = getContentValues_WCoords(coord);
+            ContentValues values = getContentValues_WCoords(user,coord);
             String table = DbSchema.Table_LastCoords.TABLE_NAME;
             int row = mDatabase.update(
                     table,
@@ -71,8 +71,8 @@ public class DataLab {
         return 0;
     }
 
-    public void last_coord_add(WCoord coord) {
-        ContentValues values = getContentValues_WCoords(coord);
+    public void last_coord_add(WUser user,WCoord coord) {
+        ContentValues values = getContentValues_WCoords(user,coord);
         mDatabase.insert(DbSchema.Table_LastCoords.TABLE_NAME, null, values);
         Debug.Log("LAST COORD", "ADDED");
     }
@@ -82,7 +82,7 @@ public class DataLab {
         Map<WUser,WCoord> coords = new HashMap<>();
         cursorWrapper.moveToFirst();
         while (!cursorWrapper.isAfterLast()) {
-            Map coord = cursorWrapper.getWCoord(mContext,users);
+            Map coord = cursorWrapper.getWUserCoord(mContext,users);
             coords.putAll(coord);
             cursorWrapper.moveToNext();
         }
@@ -108,24 +108,24 @@ public class DataLab {
         return new DbCursorWrapper(cursor);
     }
 
-    private static ContentValues getContentValues_WCoords(WCoord coord) {
+    private static ContentValues getContentValues_WCoords(WUser user,WCoord coord) {
         ContentValues values = new ContentValues();
         DateFormatTools dft = new DateFormatTools();
         values.put(DbSchema.Table_Coords.Cols.DATE, dft.dateToString(coord.get_date(), DateFormatTools.DATE_FORMAT_SAVE));
         values.put(DbSchema.Table_Coords.Cols.COORD_LAT, coord.get_coord_lat());
         values.put(DbSchema.Table_Coords.Cols.COORD_LON, coord.get_coord_lon());
         values.put(DbSchema.Table_Coords.Cols.COORD_PROVIDER, coord.get_provider());
-        //if (coord.get_user() != null) {
-        //    values.put(DbSchema.Table_Coords.Cols.ID_USER, coord.get_user().get_id_user());
-        //}
+        if (user != null) {
+            values.put(DbSchema.Table_Users.Cols.ID_USER, user.get_id_user());
+        }
         values.put(DbSchema.Table_Coords.Cols.COORD_ACCURACY, coord.get_accuracy());
         values.put(DbSchema.Table_Coords.Cols.COORD_ALTITUDE, coord.get_altitude());
         values.put(DbSchema.Table_Coords.Cols.COORD_BEARING, coord.get_bearing());
         return values;
     }
 
-    public void coord_add(WCoord coord) {
-        ContentValues values = getContentValues_WCoords(coord);
+    public void coord_add(WUser user,WCoord coord) {
+        ContentValues values = getContentValues_WCoords(user,coord);
         mDatabase.insert(DbSchema.Table_Coords.TABLE_NAME, null, values);
         Debug.Log("COORD", "ADDED");
     }
@@ -138,7 +138,18 @@ public class DataLab {
         );
         Debug.Log("COORD", "DELETED");
     }
-
+    public ArrayList<WCoord> getLocalCoords() {
+        DbCursorWrapper cursorWrapper = queryWCoords();
+        ArrayList<WCoord> coordList = new ArrayList<>();
+        cursorWrapper.moveToFirst();
+        while (!cursorWrapper.isAfterLast()) {
+            WCoord coord = cursorWrapper.getWCoord();
+            coordList.add(coord);
+            cursorWrapper.moveToNext();
+        }
+        cursorWrapper.close();
+        return coordList;
+    }
     //--------------------------------------------------------------------------------------------------
     private DbCursorWrapper queryWUsers() {
         String selection = null;
@@ -185,6 +196,7 @@ public class DataLab {
         values.put(DbSchema.Table_Users.Cols.PASSWORD, user.get_password());
         values.put(DbSchema.Table_Users.Cols.AVATAR_PATH, user.get_avatar_path());
         values.put(DbSchema.Table_Users.Cols.CURRENT, user.is_currentUser());
+        values.put(DbSchema.Table_Users.Cols.PIN_FOR_ACCESS, user.get_pin_for_access());
         return values;
     }
 

@@ -13,23 +13,19 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 /**
- * Created by wolff on 25.09.2017.
+ * Created by wolff on 02.10.2017.
  */
 
 public final class AsyncRequest extends AsyncTask<String, Void, JSONArray> {
-    //final static String MSSQL_DB = "jdbc:jtds:sqlserver://<YOUR_DB_IP>:<YOUR_DB_PORT>:/<YOUR_DB_NAME>;";
-    final static String MSSQL_DB = "jdbc:jdbc:sqlserver://<YOUR_DB_IP>:<YOUR_DB_PORT>:/<YOUR_DB_NAME>;";
-    final static String MSSQL_LOGIN = "<YOUR_DB_LOGIN>";
-    final static String MSSQL_PASS= "<YOUR_DB_PASS>";
-//      String connectionUrl = "jdbc:sqlserver://localhost:1433;" +
-//            "databaseName=AdventureWorks;integratedSecurity=true;";
+    final static String MSSQL_DB = "jdbc:jtds:sqlserver://13.10.12.10:1433:/tessst_gps;";
+    final static String MSSQL_LOGIN = "sa";
+    final static String MSSQL_PASS= "Rfcf,kfyrf";
 
     @Override
     protected JSONArray doInBackground(String... query) {
         JSONArray resultSet = new JSONArray();
         try {
-            //Class.forName("net.sourceforge.jtds.jdbc.Driver");
-            Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+            Class.forName("net.sourceforge.jtds.jdbc.Driver");
             Connection con = null;
             Statement st = null;
             ResultSet rs = null;
@@ -71,6 +67,6 @@ public final class AsyncRequest extends AsyncTask<String, Void, JSONArray> {
 
     @Override
     protected void onPostExecute(JSONArray result) {
-        // TODO: вернуть результат
+
     }
 }

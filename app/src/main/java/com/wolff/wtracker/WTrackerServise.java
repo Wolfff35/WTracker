@@ -1,31 +1,29 @@
 package com.wolff.wtracker;
 
-import android.Manifest;
 import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Build;
-import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 
 import com.wolff.wtracker.localdb.DataLab;
 import com.wolff.wtracker.model.WCoord;
 import com.wolff.wtracker.model.WUser;
+import com.wolff.wtracker.online.AsyncInsertCoords;
 import com.wolff.wtracker.tools.Debug;
-import com.wolff.wtracker.tools.PermissionTools;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import static com.wolff.wtracker.tools.PreferencesTools.IS_DEBUG;
 
@@ -34,12 +32,11 @@ import static com.wolff.wtracker.tools.PreferencesTools.IS_DEBUG;
  */
 
 public class WTrackerServise extends Service {
-    //private LocationManager locationManager;
-    LocationService mLocationService;
-    WUser mCurrentUser;
-    //ArrayList<WCoord> mLastUserCoordinates = new ArrayList<>();
-    private Map<WUser,WCoord> mLastUserCoordinates = new HashMap<>();
-    ArrayList<WUser> mUsers = new ArrayList<>();
+    private static final int REPEAT_TIME = 1;
+    private LocationService mLocationService;
+    private WUser mCurrentUser;
+    private Map<WUser, WCoord> mLastUserCoordinates = new HashMap<>();
+    private ArrayList<WUser> mUsers;
 
     @Nullable
     @Override
@@ -48,10 +45,14 @@ public class WTrackerServise extends Service {
     }
 
     public void onCreate() {
-        //super.onCreate();
+        DataLab dataLab = DataLab.get(getApplicationContext());
+        mUsers = dataLab.getWUserList();
+        mCurrentUser = dataLab.getCurrentUser(mUsers);
+        mLastUserCoordinates = dataLab.getLastCoords(mUsers);
+        mLocationService = LocationService.getLocationManager(getApplicationContext(), mCurrentUser);
         Notification.Builder builder = new Notification.Builder(this)
                 .setSmallIcon(R.mipmap.ic_launcher)
-                .setContentTitle("MY NOTIF");
+                .setContentTitle("Looking for " + mCurrentUser.get_id_user());
         Notification notification;
         if (Build.VERSION.SDK_INT < 16)
             notification = builder.getNotification();
@@ -59,28 +60,18 @@ public class WTrackerServise extends Service {
             notification = builder.build();
         startForeground(777, notification);
         Debug.Log("SERVICE", "onCreate");
-        //locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-        if (IS_DEBUG){
-            mCurrentUser=new WUser();
-            mCurrentUser.set_id_user("380996649531");
-
-        }
-        DataLab dataLab = DataLab.get(getApplicationContext());
-        mLastUserCoordinates = dataLab.getLastCoords(mUsers);
-        mLocationService = LocationService.getLocationManager(getApplicationContext(),mCurrentUser);
 
     }
 
     public int onStartCommand(Intent intent, int flags, int startId) {
-        //    sendCoordsToServer();
-        //return super.onStartCommand(intent, flags, startId);
+        sendCoordsToServer();
         Debug.Log("SERVICE", "onStartCommand");
         return START_STICKY;
     }
 
     public void onDestroy() {
         super.onDestroy();
-        mLocationService=null;
+        mLocationService = null;
         Debug.Log("SERVICE", "onDestroy");
 
     }
@@ -88,7 +79,7 @@ public class WTrackerServise extends Service {
     @Override
     public void onTaskRemoved(Intent rootIntent) {
         Debug.Log("SERVICE", "onTaskRemoved");
-        mLocationService=null;
+        mLocationService = null;
         if (Build.VERSION.SDK_INT == 19) {
             Intent restartIntent = new Intent(this, getClass());
 
@@ -101,8 +92,27 @@ public class WTrackerServise extends Service {
     }
 
     private void sendCoordsToServer() {
+        final ScheduledExecutorService scheduler =
+                Executors.newScheduledThreadPool(3);
+        scheduler.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
 
+                if (!isOnline()) {
+                    return;
+                }
+                ArrayList<WCoord> coords = DataLab.get(getApplicationContext()).getLocalCoords();
+                AsyncInsertCoords task = new AsyncInsertCoords(getApplicationContext(), mCurrentUser, coords);
+                task.execute();
+            }
+        }, 0, REPEAT_TIME, TimeUnit.MINUTES);
+    }
 
+    private boolean isOnline() {
+        ConnectivityManager cm =
+                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        return (netInfo != null && netInfo.isConnectedOrConnecting());
     }
 
 

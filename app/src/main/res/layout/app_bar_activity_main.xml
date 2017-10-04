@@ -22,4 +22,17 @@
 
     <include layout="@layout/content_activity_main" />
 
+    <LinearLayout
+        android:id="@+id/container_info"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_width="match_parent">
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvInfo"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:text="TextView"/>
 </android.support.design.widget.CoordinatorLayout>

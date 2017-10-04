@@ -24,7 +24,7 @@ public class WCoord{
     public WCoord(){
 
     }
-    public WCoord(Location loc,WUser user){
+    public WCoord(Location loc){
         if(loc!=null) {
             this.bearing = loc.getBearing();
             this.altitude = loc.getAltitude();
@@ -109,5 +109,19 @@ public class WCoord{
 
     public void set_bearing(double bearing) {
         this.bearing = bearing;
+    }
+
+    @Override
+    public String toString() {
+        return "WCoord{" +
+                "_id=" + _id +
+                ", _date=" + _date +
+                ", _coord_lat=" + _coord_lat +
+                ", _coord_lon=" + _coord_lon +
+                ", _provider='" + _provider + '\'' +
+                ", accuracy=" + accuracy +
+                ", altitude=" + altitude +
+                ", bearing=" + bearing +
+                '}';
     }
 }

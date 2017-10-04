@@ -1,84 +1,168 @@
 package com.wolff.wtracker.tools;
 
 import android.Manifest;
-import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
-import android.net.Uri;
-import android.os.Build;
-import android.provider.Settings;
-import android.support.design.widget.Snackbar;
+import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
-import android.view.View;
+import android.support.v4.app.DialogFragment;
+import android.support.v7.app.AppCompatActivity;
 import android.widget.Toast;
 
-import com.wolff.wtracker.R;
-
 /**
- * Created by wolff on 27.09.2017.
+ * Created by wolff on 03.10.2017.
  */
 
-public class PermissionTools {
-    public static final int PERMISSION_REQUEST_CODE = 123;
-    private String[] permissions = new String[]{Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION,
-            Manifest.permission.ACCESS_NETWORK_STATE,
-            Manifest.permission.INTERNET,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE};
-    public boolean hasPermissions(Context context){
-        int res = 0;
-        for (String perms : permissions){
-            res = context.checkCallingOrSelfPermission(perms);
-            if (!(res == PackageManager.PERMISSION_GRANTED)){
-                return false;
+public abstract class PermissionTools {
+
+    /**
+     * Requests the fine location permission. If a rationale with an additional explanation should
+     * be shown to the user, displays a dialog that triggers the request.
+     */
+    public static void requestPermission(AppCompatActivity activity, int requestId,
+                                         String permission, boolean finishActivity) {
+        if (ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)) {
+            // Display a dialog with rationale.
+            PermissionTools.RationaleDialog.newInstance(requestId, finishActivity)
+                    .show(activity.getSupportFragmentManager(), "dialog");
+        } else {
+            // Location permission has not been granted yet, request it.
+            ActivityCompat.requestPermissions(activity, new String[]{permission}, requestId);
+
+        }
+    }
+
+    /**
+     * Checks if the result contains a {@link PackageManager#PERMISSION_GRANTED} result for a
+     * permission from a runtime permissions request.
+     *
+     * @see android.support.v4.app.ActivityCompat.OnRequestPermissionsResultCallback
+     */
+    public static boolean isPermissionGranted(String[] grantPermissions, int[] grantResults,
+                                              String permission) {
+        for (int i = 0; i < grantPermissions.length; i++) {
+            if (permission.equals(grantPermissions[i])) {
+                return grantResults[i] == PackageManager.PERMISSION_GRANTED;
             }
         }
-        return true;
+        return false;
     }
 
-    private void requestPerms(Activity activity){
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
-            activity.requestPermissions(permissions,PERMISSION_REQUEST_CODE);
+    /**
+     * A dialog that displays a permission denied message.
+     */
+    public static class PermissionDeniedDialog extends DialogFragment {
+
+        private static final String ARGUMENT_FINISH_ACTIVITY = "finish";
+
+        private boolean mFinishActivity = false;
+
+        /**
+         * Creates a new instance of this dialog and optionally finishes the calling Activity
+         * when the 'Ok' button is clicked.
+         */
+        public static PermissionDeniedDialog newInstance(boolean finishActivity) {
+            Bundle arguments = new Bundle();
+            arguments.putBoolean(ARGUMENT_FINISH_ACTIVITY, finishActivity);
+
+            PermissionDeniedDialog dialog = new PermissionDeniedDialog();
+            dialog.setArguments(arguments);
+            return dialog;
+        }
+
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            mFinishActivity = getArguments().getBoolean(ARGUMENT_FINISH_ACTIVITY);
+
+            return new AlertDialog.Builder(getActivity())
+                    .setMessage("Location permission denied")
+                    .setPositiveButton(android.R.string.ok, null)
+                    .create();
+        }
+
+        @Override
+        public void onDismiss(DialogInterface dialog) {
+            super.onDismiss(dialog);
+            if (mFinishActivity) {
+                Toast.makeText(getActivity(), "Permission required",
+                        Toast.LENGTH_SHORT).show();
+                getActivity().finish();
+            }
         }
     }
 
-    public void requestPermissionWithRationale(final Activity activity) {
-        if (ActivityCompat.shouldShowRequestPermissionRationale(activity,
-                Manifest.permission.READ_EXTERNAL_STORAGE)) {
-            final String message = "Storage permission is needed to show files count";
-            //Snackbar.make(activity.getClass().findViewById(R.id.activity_view), message, Snackbar.LENGTH_LONG)
-            Snackbar.make(activity.findViewById(R.id.item_container), message, Snackbar.LENGTH_LONG)
-                    .setAction("GRANT", new View.OnClickListener() {
+    /**
+     * A dialog that explains the use of the location permission and requests the necessary
+     * permission.
+     * <p>
+     * The activity should implement
+     * {@link android.support.v4.app.ActivityCompat.OnRequestPermissionsResultCallback}
+     * to handle permit or denial of this permission request.
+     */
+    public static class RationaleDialog extends DialogFragment {
+
+        private static final String ARGUMENT_PERMISSION_REQUEST_CODE = "requestCode";
+
+        private static final String ARGUMENT_FINISH_ACTIVITY = "finish";
+
+        private boolean mFinishActivity = false;
+
+        /**
+         * Creates a new instance of a dialog displaying the rationale for the use of the location
+         * permission.
+         * <p>
+         * The permission is requested after clicking 'ok'.
+         *
+         * @param requestCode    Id of the request that is used to request the permission. It is
+         *                       returned to the
+         *                       {@link android.support.v4.app.ActivityCompat.OnRequestPermissionsResultCallback}.
+         * @param finishActivity Whether the calling Activity should be finished if the dialog is
+         *                       cancelled.
+         */
+        public static RationaleDialog newInstance(int requestCode, boolean finishActivity) {
+            Bundle arguments = new Bundle();
+            arguments.putInt(ARGUMENT_PERMISSION_REQUEST_CODE, requestCode);
+            arguments.putBoolean(ARGUMENT_FINISH_ACTIVITY, finishActivity);
+            RationaleDialog dialog = new RationaleDialog();
+            dialog.setArguments(arguments);
+            return dialog;
+        }
+
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            Bundle arguments = getArguments();
+            final int requestCode = arguments.getInt(ARGUMENT_PERMISSION_REQUEST_CODE);
+            mFinishActivity = arguments.getBoolean(ARGUMENT_FINISH_ACTIVITY);
+
+            return new AlertDialog.Builder(getActivity())
+                    .setMessage("Для корректной работы приложения требуются дополнительные разрешения")
+                    .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                         @Override
-                        public void onClick(View v) {
-                            requestPerms(activity);
+                        public void onClick(DialogInterface dialog, int which) {
+                            // After click on Ok, request the permission.
+                            ActivityCompat.requestPermissions(getActivity(),
+                                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                                    requestCode);
+                            // Do not finish the Activity while requesting permission.
+                            mFinishActivity = false;
                         }
                     })
-                    .show();
-        } else {
-            requestPerms(activity);
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .create();
+        }
+
+        @Override
+        public void onDismiss(DialogInterface dialog) {
+            super.onDismiss(dialog);
+            if (mFinishActivity) {
+                Toast.makeText(getActivity(),
+                        "Permission required",
+                        Toast.LENGTH_SHORT)
+                        .show();
+                getActivity().finish();
+            }
         }
     }
-    public void showPermissionSnackbar(final Activity activity) {
-        Snackbar.make(activity.findViewById(R.id.item_container), "Permission isn't granted" , Snackbar.LENGTH_LONG)
-                .setAction("SETTINGS", new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        openApplicationSettings(activity);
-
-                        Toast.makeText(activity,
-                                "Open Permissions and grant the Storage permission",
-                                Toast.LENGTH_SHORT)
-                                .show();
-                    }
-                })
-                .show();
-    }
-    private void openApplicationSettings(Activity activity) {
-        Intent appSettingsIntent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                Uri.parse("package:" + activity.getPackageName()));
-        activity.startActivityForResult(appSettingsIntent, PERMISSION_REQUEST_CODE);
-    }
-
 }

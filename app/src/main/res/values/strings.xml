@@ -6,4 +6,5 @@
 
     <string name="action_register">Register</string>
     <string name="google_maps_key">AIzaSyD6BvvorcKPqBkn6bArqR9rcTj7Lw8mZzk</string>
+    <string name="action_update_map">Обновить</string>
 </resources>
