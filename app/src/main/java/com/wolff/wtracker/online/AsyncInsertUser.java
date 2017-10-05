@@ -52,7 +52,7 @@ public final class AsyncInsertUser extends AsyncTask<String, Void, Boolean> {
                 prepared.setString(3, mCurrentUser.get_password());
                 prepared.setString(4, mCurrentUser.get_pin_for_access());
                 prepared.addBatch();
-                prepared.executeUpdate();
+                prepared.executeBatch();
                 return true;
             } catch (SQLException e) {
                 Debug.Log("AsyncInsertUser", "ERROR 4 " + e.getLocalizedMessage());

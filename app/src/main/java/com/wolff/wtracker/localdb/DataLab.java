@@ -89,7 +89,23 @@ public class DataLab {
         cursorWrapper.close();
         return coords;
     }
+    public WCoord getUserLastCoord(WUser user){
+        ArrayList<WUser> users = getWUserList();
+        Map<WUser,WCoord> lastCoord = getLastCoords(users);
+        WCoord last=null;
+        for (Map.Entry<WUser,WCoord>entry:lastCoord.entrySet()) {
+            if(entry.getKey().get_id_user().equalsIgnoreCase(user.get_id_user())){
+                last = entry.getValue();
+            }
+        }
+        if(last!=null) {
+            Debug.Log("getUserLastCoord", "USER = " + user.get_id_user() + "; coord = " + last.toString());
+        }else {
+            Debug.Log("getUserLastCoord", "USER = " + user.get_id_user() + " - NO LAST COORDINATES!!");
+        }
+        return last;
 
+    }
     //--------------------------------------------------------------------------------------------------
     private DbCursorWrapper queryWCoords() {
         String selection = null;
@@ -121,6 +137,7 @@ public class DataLab {
         values.put(DbSchema.Table_Coords.Cols.COORD_ACCURACY, coord.get_accuracy());
         values.put(DbSchema.Table_Coords.Cols.COORD_ALTITUDE, coord.get_altitude());
         values.put(DbSchema.Table_Coords.Cols.COORD_BEARING, coord.get_bearing());
+        values.put(DbSchema.Table_Coords.Cols.ID, coord.get_id());
         return values;
     }
 
@@ -241,6 +258,10 @@ public class DataLab {
             cursorWrapper.moveToNext();
         }
         cursorWrapper.close();
+        for(WUser user:userList){
+            Debug.Log("USER LIST","user = "+user.toString());
+        }
+
         return userList;
     }
 

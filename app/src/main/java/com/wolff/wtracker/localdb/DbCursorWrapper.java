@@ -7,6 +7,7 @@ import android.database.CursorWrapper;
 import com.wolff.wtracker.model.WCoord;
 import com.wolff.wtracker.model.WUser;
 import com.wolff.wtracker.tools.DateFormatTools;
+import com.wolff.wtracker.tools.Debug;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -32,8 +33,8 @@ class DbCursorWrapper extends CursorWrapper {
         user.set_password(getString(getColumnIndex(DbSchema.Table_Users.Cols.PASSWORD)));
         user.set_phone(getString(getColumnIndex(DbSchema.Table_Users.Cols.PHONE)));
         user.set_avatar_path(getString(getColumnIndex(DbSchema.Table_Users.Cols.AVATAR_PATH)));
+        user.set_pin_for_access(getString(getColumnIndex(DbSchema.Table_Users.Cols.PIN_FOR_ACCESS)));
         user.set_currentUser(getInt(getColumnIndex(DbSchema.Table_Users.Cols.CURRENT))==1);
-      //TODO  user.set_pin_for_access(getString(getColumnIndex(DbSchema.Table_Users.Cols.PIN_FOR_ACCESS)));
         return user;
      }
     public Map<WUser,WCoord> getWUserCoord(Context context, ArrayList<WUser> users){
@@ -54,6 +55,11 @@ class DbCursorWrapper extends CursorWrapper {
         coord.set_accuracy(getDouble(getColumnIndex(DbSchema.Table_Coords.Cols.COORD_ACCURACY)));
         coord.set_altitude(getDouble(getColumnIndex(DbSchema.Table_Coords.Cols.COORD_ALTITUDE)));
         coord.set_bearing(getDouble(getColumnIndex(DbSchema.Table_Coords.Cols.COORD_BEARING)));
+        try {
+            coord.set_id(getDouble(getColumnIndex(DbSchema.Table_Coords.Cols.ID)));
+        }catch (Exception e){
+            Debug.Log("getWCoord","NO ID COORD");
+        }
         return coord;
     }
  }

@@ -2,6 +2,7 @@ package com.wolff.wtracker.tools;
 
 import android.app.ActivityManager;
 import android.content.Context;
+import android.telephony.TelephonyManager;
 
 /**
  * Created by wolff on 24.09.2017.
@@ -17,5 +18,9 @@ public class OtherTools {
         }
         return false;
     }
-
+//=====
+    public String getIMEI(Context context){
+        TelephonyManager manager = (TelephonyManager) context.getSystemService(context.TELEPHONY_SERVICE);
+        return manager.getDeviceId();
+    }
 }

@@ -10,7 +10,7 @@ import android.util.Log;
  */
 
 class DbHelper extends SQLiteOpenHelper {
-    private  static final int VERSION = 2;
+    private  static final int VERSION = 4;
 
     public DbHelper(Context context) {
         super(context, DbSchema.DATABASE_NAME, null, VERSION);
@@ -26,5 +26,12 @@ class DbHelper extends SQLiteOpenHelper {
 
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+            db.execSQL("DROP TABLE "+DbSchema.Table_Users.TABLE_NAME);
+            db.execSQL("DROP TABLE "+DbSchema.Table_Coords.TABLE_NAME);
+            db.execSQL("DROP TABLE "+DbSchema.Table_LastCoords.TABLE_NAME);
+            db.execSQL(DbSchema.CREATE_TABLE_USERS);
+            db.execSQL(DbSchema.CREATE_TABLE_COORDS);
+            db.execSQL(DbSchema.CREATE_TABLE_LAST_COORDS);
+            Log.e("UPDATE TABLES","CREATED!");
         }
 }

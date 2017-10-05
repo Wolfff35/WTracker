@@ -17,6 +17,7 @@ import com.wolff.wtracker.model.WCoord;
 import com.wolff.wtracker.model.WUser;
 import com.wolff.wtracker.online.AsyncInsertCoords;
 import com.wolff.wtracker.tools.Debug;
+import com.wolff.wtracker.tools.OtherTools;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,12 +33,12 @@ import static com.wolff.wtracker.tools.PreferencesTools.IS_DEBUG;
  */
 
 public class WTrackerServise extends Service {
-    private static final int REPEAT_TIME = 1;
+    private static final int REPEAT_TIME = 3;
     private LocationService mLocationService;
     private WUser mCurrentUser;
     private Map<WUser, WCoord> mLastUserCoordinates = new HashMap<>();
     private ArrayList<WUser> mUsers;
-
+    private String mPhoneIMEI;
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -104,6 +105,7 @@ public class WTrackerServise extends Service {
                 ArrayList<WCoord> coords = DataLab.get(getApplicationContext()).getLocalCoords();
                 AsyncInsertCoords task = new AsyncInsertCoords(getApplicationContext(), mCurrentUser, coords);
                 task.execute();
+
             }
         }, 0, REPEAT_TIME, TimeUnit.MINUTES);
     }

@@ -57,6 +57,7 @@ public class LocationService implements LocationListener {
     private LocationService(Context context, WUser currentUser) {
         mContext = context;
         mCurrentUser = currentUser;
+        mLastCoord = DataLab.get(mContext).getUserLastCoord(mCurrentUser);
         initLocationService();
         Debug.Log("SERV", "LocationService created");
     }
@@ -170,14 +171,15 @@ public class LocationService implements LocationListener {
         }
         if(write) {
             dataLab.coord_add(mCurrentUser, coord);
+
             int l = dataLab.last_coord_update(mCurrentUser, coord);
             if (l == 0) {
                 dataLab.last_coord_add(mCurrentUser, coord);
             }
             Debug.Log("UPDATE", "COORDS: lat: " + mLocation.getLatitude() + "; lon: " + mLocation.getLongitude() + "; provider = " + mLocation.getProvider());
-            Debug.Log("UPDATE", "COORDS: accuracy: " + mLocation.getAccuracy() + "; altitude: " + mLocation.getAltitude() + "; bearing = " + mLocation.getBearing());
-            Debug.Log("UPDATE", "COORDS: ElapsedRealtimeNanos: " + mLocation.getElapsedRealtimeNanos() + "; speed: " + mLocation.getSpeed() + "; time = " + mLocation.getTime());
-            Debug.Log("=", "================================================================================");
+            //Debug.Log("UPDATE", "COORDS: accuracy: " + mLocation.getAccuracy() + "; altitude: " + mLocation.getAltitude() + "; bearing = " + mLocation.getBearing());
+            //Debug.Log("UPDATE", "COORDS: ElapsedRealtimeNanos: " + mLocation.getElapsedRealtimeNanos() + "; speed: " + mLocation.getSpeed() + "; time = " + mLocation.getTime());
+            //Debug.Log("=", "================================================================================");
             mLastCoord=coord;
         }
     }

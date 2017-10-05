@@ -57,7 +57,6 @@ public class DbSchema {
          public static final class Cols{
              public static final String ID          = "_id";
              public static final String DATE        = "_date";
-             //public static final String ID_USER     = "_id_user";
              public static final String COORD_LAT       = "_coord_lat";
              public static final String COORD_LON       = "_coord_lon";
              public static final String COORD_PROVIDER = "_provider";
@@ -77,7 +76,6 @@ public class DbSchema {
         public static final String TABLE_NAME = "table_users";
 
         public static final class Cols{
-            //public static final String ID             = "_id";
             public static final String ID_USER          = "_id_user";
             public static final String NAME             = "_name";
             public static final String PHONE            = "_phone";

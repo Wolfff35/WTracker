@@ -7,16 +7,10 @@ import com.wolff.wtracker.localdb.DataLab;
 import com.wolff.wtracker.localdb.DbSchema;
 import com.wolff.wtracker.model.WCoord;
 import com.wolff.wtracker.model.WUser;
-import com.wolff.wtracker.tools.DateFormatTools;
 import com.wolff.wtracker.tools.Debug;
-
-import org.json.JSONArray;
-
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 
 import static com.wolff.wtracker.online.AsyncRequest.MSSQL_DB;
@@ -54,6 +48,7 @@ public final class AsyncInsertCoords extends AsyncTask<String, Void, Boolean> {
 
     @Override
     protected Boolean doInBackground(String... proc_params) {
+        Debug.Log("AsyncInsertCoords","BEGIN");
         OnlineDataLab onlineDataLab = OnlineDataLab.get(mContext);
         Connection con = onlineDataLab.getOnlineConnection(MSSQL_DB, MSSQL_LOGIN, MSSQL_PASS);
         if (con != null) {
@@ -73,11 +68,11 @@ public final class AsyncInsertCoords extends AsyncTask<String, Void, Boolean> {
                     prepared.setDouble(9, coord.get_bearing());
                     prepared.addBatch();
                 }
-                prepared.executeUpdate();
+                prepared.executeBatch();
+                Debug.Log("COORDS","send on server - "+mCoords.size());
                 return true;
             } catch (SQLException e) {
                 Debug.Log("AsyncInsertCoords", "ERROR 4 " + e.getLocalizedMessage());
-
             } finally {
                 try {
                     if (prepared != null) prepared.close();
@@ -95,7 +90,9 @@ public final class AsyncInsertCoords extends AsyncTask<String, Void, Boolean> {
     @Override
     protected void onPostExecute(Boolean aBoolean) {
         super.onPostExecute(aBoolean);
+        Debug.Log("FINISH"," send coords = "+aBoolean);
         if (aBoolean){
+
             for (WCoord coord:mCoords){
                 DataLab.get(mContext).coord_delete(coord);
             }
