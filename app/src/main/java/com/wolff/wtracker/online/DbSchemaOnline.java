@@ -10,6 +10,7 @@ public class DbSchemaOnline {
     public static final String CREATE_TABLE_USERS = "CREATE TABLE [tessst_gps].[dbo].[t_users] ("+
             DbSchema.Table_Users.Cols.ID_USER        +" VARCHAR(14) PRIMARY KEY NOT NULL, "+
             DbSchema.Table_Users.Cols.PASSWORD +" VARCHAR(20), "+
+            DbSchema.Table_Users.Cols.NAME +" VARCHAR(20), "+
             DbSchema.Table_Users.Cols.IMEI_PHONE +" VARCHAR(20), "+
             DbSchema.Table_Users.Cols.PIN_FOR_ACCESS+" VARCHAR(10)"+ //пин для подключения другими юзерами
             ")";

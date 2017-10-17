@@ -4,24 +4,17 @@ import android.content.Context;
 import android.os.AsyncTask;
 
 import com.wolff.wtracker.localdb.DbSchema;
-import com.wolff.wtracker.model.WCoord;
 import com.wolff.wtracker.model.WUser;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.wolff.wtracker.tools.Debug;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
 
-import static android.R.attr.data;
-import static com.wolff.wtracker.online.AsyncRequest.MSSQL_DB;
-import static com.wolff.wtracker.online.AsyncRequest.MSSQL_LOGIN;
-import static com.wolff.wtracker.online.AsyncRequest.MSSQL_PASS;
+import static com.wolff.wtracker.online.AsyncRequestCoords.MSSQL_DB;
+import static com.wolff.wtracker.online.AsyncRequestCoords.MSSQL_LOGIN;
+import static com.wolff.wtracker.online.AsyncRequestCoords.MSSQL_PASS;
 
 /**
  * Created by wolff on 02.10.2017.
@@ -30,35 +23,49 @@ import static com.wolff.wtracker.online.AsyncRequest.MSSQL_PASS;
 public final class AsyncRequestUser extends AsyncTask<String, Void, WUser> {
     private Context mContext;
     private WUser mCurrentUser;
+    private static final String LOG_TAG = "AsyncRequestUser";
     private static final String REMOTE_TABLE = "[tessst_gps].[dbo].[t_users]";
-    public AsyncRequestUser(Context context,WUser currentUser) {
+
+    public AsyncRequestUser(Context context, WUser currentUser) {
         this.mContext = context;
         this.mCurrentUser = currentUser;
     }
 
     @Override
     protected WUser doInBackground(String... query) {
+        Debug.Log(LOG_TAG, "Begin");
+
         String SQL = "SELECT * FROM " + REMOTE_TABLE + " WHERE " + DbSchema.Table_Users.Cols.ID_USER + " = " + mCurrentUser.get_id_user();
+        //String SQL = "SELECT * FROM " + REMOTE_TABLE + " WHERE " + DbSchema.Table_Users.Cols.ID_USER + " = 380996649531";// + mCurrentUser.get_id_user();
         Connection con = OnlineDataLab.get(mContext).getOnlineConnection(MSSQL_DB, MSSQL_LOGIN, MSSQL_PASS);
+        WUser user = null;
         Statement st = null;
         ResultSet rs = null;
         if (con != null) {
+            Debug.Log(LOG_TAG, "Get connection");
             try {
                 st = con.createStatement();
                 rs = st.executeQuery(SQL);
                 if (rs != null) {
-                    int columnCount = rs.getMetaData().getColumnCount();
-                    while (rs.next()) {
-                        //JSONObject rowObject = new JSONObject();
-                        for (int i = 1; i <= columnCount; i++) {
-                           // rowObject.put(rs.getMetaData().getColumnName(i), (rs.getString(i) != null) ? rs.getString(i) : "");
-                        }
-                        //                          resultSet.put(rowObject);
+                    if (rs.next()) {
+                        user = new WUser();
+                        user.set_id_user(rs.getString(DbSchema.Table_Users.Cols.ID_USER));
+                        user.set_imei_phone(rs.getString(DbSchema.Table_Users.Cols.IMEI_PHONE));
+                        user.set_password(rs.getString(DbSchema.Table_Users.Cols.PASSWORD));
+                        user.set_pin_for_access(rs.getString(DbSchema.Table_Users.Cols.PIN_FOR_ACCESS));
+                        user.set_name(rs.getString(DbSchema.Table_Users.Cols.NAME));
+                        user.set_phone(rs.getString(DbSchema.Table_Users.Cols.ID_USER));
+                        return user;
+                    } else {
+                        return null;
                     }
+                } else {
+                    return null;
                 }
             } catch (SQLException e) {
-                e.printStackTrace();
-            }finally {
+                Debug.Log(LOG_TAG, "ERROR 1 " + e.getLocalizedMessage());
+                return null;
+            } finally {
                 try {
                     if (rs != null) rs.close();
                     if (st != null) st.close();
@@ -69,10 +76,10 @@ public final class AsyncRequestUser extends AsyncTask<String, Void, WUser> {
             }
 
 
+        } else {
+            return null;
         }
-
-        //    return resultSet;
-        return null;
+        //return user;
     }
 
     @Override

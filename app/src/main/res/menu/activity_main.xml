@@ -2,8 +2,8 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/action_register"
-        android:title="@string/action_register"
+        android:id="@+id/action_add_user"
+        android:title="Добавить пользователя"
         app:showAsAction="never" />
     <item
         android:id="@+id/action_create_online_tables"
@@ -20,9 +20,5 @@
     <item
         android:id="@+id/action_start_service"
         android:title="Запустить сервис"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/action_log"
-        android:title="Log"
         app:showAsAction="never" />
 </menu>

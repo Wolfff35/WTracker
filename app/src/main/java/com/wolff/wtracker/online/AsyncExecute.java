@@ -7,9 +7,9 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import static com.wolff.wtracker.online.AsyncRequest.MSSQL_DB;
-import static com.wolff.wtracker.online.AsyncRequest.MSSQL_LOGIN;
-import static com.wolff.wtracker.online.AsyncRequest.MSSQL_PASS;
+import static com.wolff.wtracker.online.AsyncRequestCoords.MSSQL_DB;
+import static com.wolff.wtracker.online.AsyncRequestCoords.MSSQL_LOGIN;
+import static com.wolff.wtracker.online.AsyncRequestCoords.MSSQL_PASS;
 
 /**
  * Created by wolff on 03.10.2017.

@@ -22,23 +22,20 @@ import static com.wolff.wtracker.tools.PreferencesTools.IS_DEBUG;
  * Created by wolff on 05.10.2017.
  */
 
-public class Register_user_fragment extends Fragment {
+public class Add_user_fragment extends Fragment {
     private EditText edUserName;
-    private EditText edUserPassword;
     private EditText edUserPhone;
-    private EditText edUserIMEI;
     private EditText edUserPin;
 
-    private Button btnRegister;
-    private Button btnLogin;
-    private Register_user_fragment_listener listener;
+    private Button btnAddUser;
+    private Add_user_fragment_listener listener;
 
-    public interface Register_user_fragment_listener {
-        void onClickButton(String buttonType, WUser user);
+    public interface Add_user_fragment_listener {
+        void onClickButtonAdd(WUser user);
     }
 
-    public static Register_user_fragment newInstance() {
-        Register_user_fragment fragment = new Register_user_fragment();
+    public static Add_user_fragment newInstance() {
+        Add_user_fragment fragment = new Add_user_fragment();
         return fragment;
     }
 
@@ -51,29 +48,22 @@ public class Register_user_fragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.register_user_fragment, container, false);
+        View view = inflater.inflate(R.layout.add_user_fragment, container, false);
 
         edUserName = (EditText) view.findViewById(R.id.edUserName);
-        edUserPassword = (EditText) view.findViewById(R.id.edUserPassword);
         edUserPhone = (EditText) view.findViewById(R.id.edUserPhone);
-        edUserIMEI = (EditText) view.findViewById(R.id.edUserIMEI);
         edUserPin = (EditText) view.findViewById(R.id.edUserPin);
 
-        btnLogin = (Button) view.findViewById(R.id.btnLogin);
-        btnRegister = (Button) view.findViewById(R.id.btnRegister);
+        btnAddUser = (Button) view.findViewById(R.id.btnAddUser);
 
-        btnLogin.setOnClickListener(btnLoginOnClickListener);
-        btnRegister.setOnClickListener(btnRegisterOnClickListener);
+        btnAddUser.setOnClickListener(btnAddUserOnClickListener);
 
         edUserName.addTextChangedListener(textWatcher);
-        edUserPassword.addTextChangedListener(textWatcher);
         edUserPhone.addTextChangedListener(textWatcher);
         edUserPin.addTextChangedListener(textWatcher);
-        edUserIMEI.setText(new OtherTools().getIMEI(getContext()));
         if (IS_DEBUG) {
             edUserName.setText("Wolfff");
             edUserPhone.setText("380673231646");
-            edUserPassword.setText("777555");
             edUserPin.setText("1234");
         }
         setViewEnabled();
@@ -82,30 +72,20 @@ public class Register_user_fragment extends Fragment {
 
     private void setViewEnabled() {
         boolean isEnabled = (edUserName.getText().toString().length() > 3) &&
-                (edUserPassword.getText().toString().length() > 3) &&
                 (edUserPhone.getText().toString().length() == 12) &&
                 (edUserPin.getText().toString().length() > 3);
-        btnRegister.setEnabled(isEnabled);
-        btnLogin.setEnabled(isEnabled);
+        btnAddUser.setEnabled(isEnabled);
     }
 
-    View.OnClickListener btnLoginOnClickListener = new View.OnClickListener() {
+    View.OnClickListener btnAddUserOnClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            listener.onClickButton("LOGIN", getUserFromRegForm());
-        }
-    };
-    View.OnClickListener btnRegisterOnClickListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            btnRegister.setEnabled(false);
-            btnLogin.setEnabled(false);
+            btnAddUser.setEnabled(false);
 
 
-            listener.onClickButton("REGISTER", getUserFromRegForm());
+            listener.onClickButtonAdd(getUserFromRegForm());
 
-            btnRegister.setEnabled(true);
-            btnLogin.setEnabled(true);
+            btnAddUser.setEnabled(true);
 
         }
     };
@@ -114,9 +94,7 @@ public class Register_user_fragment extends Fragment {
         WUser newUser = new WUser();
         newUser.set_currentUser(true);
         newUser.set_phone(edUserPhone.getText().toString());
-        newUser.set_password(edUserPassword.getText().toString());
         newUser.set_name(edUserName.getText().toString());
-        newUser.set_imei_phone(edUserIMEI.getText().toString());
         //newUser.set_avatar_path();
         newUser.set_pin_for_access(edUserPin.getText().toString());
         newUser.set_id_user(edUserPhone.getText().toString());
@@ -132,7 +110,7 @@ public class Register_user_fragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        listener = (Register_user_fragment_listener) context;
+        listener = (Add_user_fragment_listener) context;
     }
 
     TextWatcher textWatcher = new TextWatcher() {

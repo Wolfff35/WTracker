@@ -3,7 +3,6 @@ package com.wolff.wtracker.fragments;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -15,7 +14,9 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.wolff.wtracker.R;
@@ -42,10 +43,8 @@ public class Google_map_fragment extends Fragment implements OnMapReadyCallback 
 
     private Map<WUser,WCoord> mLastUserCoordinates = new HashMap<>();
     private ArrayList<WUser> mUsers = new ArrayList<>();
-    private WUser mCurrentUser;
+    //private WUser mCurrentUser;
     private Map<WUser,Marker> mMarkers = new HashMap<>();
-
-    private boolean mPermissionDenied = false;
 
     private static final String LOG_TAG = "Google_map_fragment";
     public static Google_map_fragment newInstance(){
@@ -58,7 +57,7 @@ public class Google_map_fragment extends Fragment implements OnMapReadyCallback 
         DataLab dataLab = DataLab.get(getContext());
         mUsers = dataLab.getWUserList();
         mLastUserCoordinates = dataLab.getLastCoords(mUsers);
-        mCurrentUser = dataLab.getCurrentUser(mUsers);
+        //mCurrentUser = dataLab.getCurrentUser(mUsers);
         setupMap();
      }
 
@@ -149,8 +148,16 @@ public class Google_map_fragment extends Fragment implements OnMapReadyCallback 
                 mMarkers.put(user,marker);
                 Debug.Log("MARKER","ADD");
             }
-            mMap.moveCamera(CameraUpdateFactory.newLatLng(ll));
+
+           // LatLngBounds POSITION = new LatLngBounds(ll, ll);
+
+           // mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(POSITION, 0));
+
+            //mMap.moveCamera(CameraUpdateFactory.newLatLng(ll));
+            CameraPosition position = new CameraPosition(ll,10,0,0);
+            mMap.moveCamera(CameraUpdateFactory.newCameraPosition(position));
             Debug.Log("SHOW",""+user.get_id_user());
+
         }
 
     }

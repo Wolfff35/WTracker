@@ -4,18 +4,16 @@ import android.content.Context;
 import android.os.AsyncTask;
 
 import com.wolff.wtracker.localdb.DbSchema;
-import com.wolff.wtracker.model.WCoord;
 import com.wolff.wtracker.model.WUser;
 import com.wolff.wtracker.tools.Debug;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.ArrayList;
 
-import static com.wolff.wtracker.online.AsyncRequest.MSSQL_DB;
-import static com.wolff.wtracker.online.AsyncRequest.MSSQL_LOGIN;
-import static com.wolff.wtracker.online.AsyncRequest.MSSQL_PASS;
+import static com.wolff.wtracker.online.AsyncRequestCoords.MSSQL_DB;
+import static com.wolff.wtracker.online.AsyncRequestCoords.MSSQL_LOGIN;
+import static com.wolff.wtracker.online.AsyncRequestCoords.MSSQL_PASS;
 
 
 /**
@@ -24,6 +22,8 @@ import static com.wolff.wtracker.online.AsyncRequest.MSSQL_PASS;
 public final class AsyncInsertUser extends AsyncTask<String, Void, Boolean> {
     private Context mContext;
     private WUser mCurrentUser;
+
+    private static final String LOG_TAG = "AsyncInsertUser";
 
     private static final String REMOTE_TABLE = "[tessst_gps].[dbo].[t_users]";
     private static final String SQL = "INSERT into "+REMOTE_TABLE+
@@ -41,11 +41,15 @@ public final class AsyncInsertUser extends AsyncTask<String, Void, Boolean> {
 
     @Override
     protected Boolean doInBackground(String... proc_params) {
+        Debug.Log(LOG_TAG,"Begin task");
         OnlineDataLab onlineDataLab = OnlineDataLab.get(mContext);
         Connection con = onlineDataLab.getOnlineConnection(MSSQL_DB, MSSQL_LOGIN, MSSQL_PASS);
+        Debug.Log(LOG_TAG,"Get connection");
         if (con != null) {
             PreparedStatement prepared = null;
             try {
+                Debug.Log(LOG_TAG,"Prepare statement");
+
                 prepared = con.prepareStatement(SQL);
                 prepared.setString(1, mCurrentUser.get_id_user());
                 prepared.setString(2, mCurrentUser.get_imei_phone());
@@ -53,6 +57,7 @@ public final class AsyncInsertUser extends AsyncTask<String, Void, Boolean> {
                 prepared.setString(4, mCurrentUser.get_pin_for_access());
                 prepared.addBatch();
                 prepared.executeBatch();
+                Debug.Log(LOG_TAG,"SUCCESS");
                 return true;
             } catch (SQLException e) {
                 Debug.Log("AsyncInsertUser", "ERROR 4 " + e.getLocalizedMessage());
@@ -67,7 +72,7 @@ public final class AsyncInsertUser extends AsyncTask<String, Void, Boolean> {
                 }
             }
         }
-
+        Debug.Log(LOG_TAG,"FINISH ERROR");
         return false;
     }
 }

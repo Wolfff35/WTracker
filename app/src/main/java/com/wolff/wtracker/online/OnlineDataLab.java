@@ -9,13 +9,7 @@ import com.wolff.wtracker.tools.Debug;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.concurrent.ExecutionException;
-
-import static com.wolff.wtracker.online.AsyncRequest.MSSQL_DB;
-import static com.wolff.wtracker.online.AsyncRequest.MSSQL_LOGIN;
-import static com.wolff.wtracker.online.AsyncRequest.MSSQL_PASS;
 
 /**
  * Created by wolff on 25.09.2017.

@@ -15,18 +15,12 @@
         android:orientation="horizontal">
 
         <Button
-            android:id="@+id/btnRegister"
+            android:id="@+id/btnAddUser"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Регистрация" />
 
-        <Button
-            android:id="@+id/btnLogin"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Log in" />
     </LinearLayout>
 
 
@@ -56,35 +50,6 @@
             android:ems="10"
             android:hint=">3 символов"
             android:inputType="text" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="5dp"
-        android:layout_marginLeft="5dp"
-        android:layout_marginRight="5dp"
-        android:background="@drawable/rounded"
-        android:orientation="horizontal">
-
-        <TextView
-            android:id="@+id/tvUserPassword"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="10dp"
-            android:layout_weight="1"
-            android:text="Пароль:" />
-
-        <EditText
-            android:id="@+id/edUserPassword"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginRight="10dp"
-            android:layout_weight="1"
-            android:ems="10"
-            android:hint=">3 символов"
-            android:inputType="textPassword" />
 
     </LinearLayout>
 
@@ -141,34 +106,6 @@
             android:layout_weight="1"
             android:ems="10"
             android:hint=">3 символов"
-            android:inputType="text" />
-
-    </LinearLayout>
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="5dp"
-        android:layout_marginLeft="5dp"
-        android:layout_marginRight="5dp"
-        android:background="@drawable/rounded"
-        android:orientation="horizontal">
-
-        <TextView
-            android:id="@+id/tvUserIMEI"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="10dp"
-            android:layout_weight="1"
-            android:text="IMEI:" />
-
-        <EditText
-            android:id="@+id/edUserIMEI"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginRight="10dp"
-            android:layout_weight="1"
-            android:ems="10"
-            android:enabled="false"
             android:inputType="text" />
 
     </LinearLayout>

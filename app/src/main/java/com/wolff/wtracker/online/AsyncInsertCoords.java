@@ -13,9 +13,9 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-import static com.wolff.wtracker.online.AsyncRequest.MSSQL_DB;
-import static com.wolff.wtracker.online.AsyncRequest.MSSQL_LOGIN;
-import static com.wolff.wtracker.online.AsyncRequest.MSSQL_PASS;
+import static com.wolff.wtracker.online.AsyncRequestCoords.MSSQL_DB;
+import static com.wolff.wtracker.online.AsyncRequestCoords.MSSQL_LOGIN;
+import static com.wolff.wtracker.online.AsyncRequestCoords.MSSQL_PASS;
 
 
 /**

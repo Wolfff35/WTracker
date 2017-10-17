@@ -16,12 +16,18 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.TextView;
+
+import com.wolff.wtracker.fragments.Add_user_fragment;
 import com.wolff.wtracker.fragments.Google_map_fragment;
+import com.wolff.wtracker.fragments.Register_user_fragment;
 import com.wolff.wtracker.localdb.DataLab;
 import com.wolff.wtracker.online.AsyncExecute;
 import com.wolff.wtracker.model.WCoord;
 import com.wolff.wtracker.model.WUser;
 import com.wolff.wtracker.online.AsyncInsertUser;
+import com.wolff.wtracker.online.AsyncRequestUser;
 import com.wolff.wtracker.online.DbSchemaOnline;
 import com.wolff.wtracker.online.OnlineDataLab;
 import com.wolff.wtracker.tools.Debug;
@@ -36,7 +42,10 @@ import java.util.concurrent.ExecutionException;
 import static com.wolff.wtracker.tools.PreferencesTools.IS_DEBUG;
 
 public class ActivityMain extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener,ActivityCompat.OnRequestPermissionsResultCallback {
+        implements NavigationView.OnNavigationItemSelectedListener,
+        ActivityCompat.OnRequestPermissionsResultCallback,
+        Register_user_fragment.Register_user_fragment_listener,
+        Add_user_fragment.Add_user_fragment_listener{
 
     private Fragment mCurrentFragment;
     private ArrayList<WUser> mUsers = new ArrayList<>();
@@ -55,30 +64,27 @@ public class ActivityMain extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.addDrawerListener(toggle);
-        toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        final NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
         DataLab dataLab = DataLab.get(getApplicationContext());
         mUsers = dataLab.getWUserList();
         mCurrentUser = dataLab.getCurrentUser(mUsers);
-        //if (mCurrentUser == null) {
-        //    mCurrentFragment = Register_user_fragment.newInstance();
-        //}else {
-            mCurrentFragment = Google_map_fragment.newInstance();
-        //}
+        registerOrLoginUser();
+
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close){
+            public void onDrawerOpened(View drawerView){
+                super.onDrawerOpened(drawerView);
+                new OtherTools().createDrawerMenu(mUsers,navigationView.getMenu());
+            }
+        };
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
+
         displayFragment();
-        if (!OtherTools.isServiceRunning(getApplicationContext(), WTrackerServise.class)
-                &&mCurrentUser!=null) {
-            Intent intent = new Intent(getApplicationContext(), WTrackerServise.class);
-            startService(intent);
-            Debug.Log("RUN", "Servise!");
-        }
     }
 
     @Override
@@ -88,7 +94,7 @@ public class ActivityMain extends AppCompatActivity
             // Permission was not granted, display error dialog.
             showMissingPermissionError();
             mPermissionDenied = false;
-       }
+        }
 
     }
 
@@ -113,16 +119,14 @@ public class ActivityMain extends AppCompatActivity
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         switch (id) {
+            case R.id.action_add_user: {
+                mCurrentFragment = Add_user_fragment.newInstance();
+                displayFragment();
+                break;
+            }
             case R.id.action_uprate_map: {
                 //mLastUserCoordinates = DataLab.get(getApplicationContext()).getLastCoords(mUsers);
                 //drawLastCoords();
-                break;
-            }
-            case R.id.action_register: {
-                break;
-            }
-            case R.id.action_log: {
-                logData();
                 break;
             }
             case R.id.action_stop_service: {
@@ -141,21 +145,21 @@ public class ActivityMain extends AppCompatActivity
 
                 OnlineDataLab onlineDataLab = OnlineDataLab.get(getApplicationContext());
                 ArrayList<WCoord> coords = DataLab.get(getApplicationContext()).getLocalCoords();
-                onlineDataLab.writeCoordsToServer(mCurrentUser,coords);
+                onlineDataLab.writeCoordsToServer(mCurrentUser, coords);
                 break;
             }
             case R.id.action_create_online_tables: {
                 try {
                     AsyncExecute ac = new AsyncExecute(getApplicationContext());
                     boolean flag = ac.execute(DbSchemaOnline.CREATE_TABLE_USERS).get();
-                    Debug.Log("AsyncExecute","flag users = "+flag);
+                    Debug.Log("AsyncExecute", "flag users = " + flag);
                     AsyncExecute ac2 = new AsyncExecute(getApplicationContext());
                     boolean flag2 = ac2.execute(DbSchemaOnline.CREATE_TABLE_COORDS).get();
-                    Debug.Log("AsyncExecute","flag coords = "+flag2);
+                    Debug.Log("AsyncExecute", "flag coords = " + flag2);
                 } catch (InterruptedException e) {
-                    Debug.Log("AsyncExecute","ERROR 1 "+e.getLocalizedMessage());
+                    Debug.Log("AsyncExecute", "ERROR 1 " + e.getLocalizedMessage());
                 } catch (ExecutionException e) {
-                    Debug.Log("AsyncExecute","ERROR 2 "+e.getLocalizedMessage());
+                    Debug.Log("AsyncExecute", "ERROR 2 " + e.getLocalizedMessage());
                 }
                 break;
             }
@@ -166,88 +170,32 @@ public class ActivityMain extends AppCompatActivity
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
-        // Handle navigation view item clicks here.
         int id = item.getItemId();
-
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        }
-
+        Debug.Log("NAVIGATION","id = "+id);
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
 
-    private void registerUser() {
-        if (IS_DEBUG&&mCurrentUser==null) {
 
-            WUser currentUser = new WUser();
-            currentUser.set_id_user("380996649531");
-            currentUser.set_currentUser(true);
-            currentUser.set_imei_phone(new OtherTools().getIMEI(getApplicationContext()));
-            currentUser.set_pin_for_access("1234");
-            currentUser.set_name("Wolfff");
-            currentUser.set_password("passs");
-            DataLab dataLab = DataLab.get(getApplicationContext());
-            dataLab.user_add(currentUser);
-            mUsers = dataLab.getWUserList();
-            //mLastUserCoordinates = dataLab.getLastCoords(mUsers);
-            mCurrentUser = dataLab.getCurrentUser(mUsers);
-
-            //mCurrentUser=currentUser;
-            WCoord coord = new WCoord();
-            coord.set_date(new Date());
-            coord.set_coord_lat(20);
-            coord.set_coord_lon(13);
-            coord.set_accuracy(0);
-            coord.set_altitude(0);
-            coord.set_provider("gps");
-            dataLab.last_coord_add(mCurrentUser,coord);
-            try {
-                boolean fl = new AsyncInsertUser(getApplicationContext(),mCurrentUser).execute().get();
-                Debug.Log("register","user SUCCESS");
-            } catch (InterruptedException e) {
-                Debug.Log("register","user ERROR 1"+e.getLocalizedMessage());
-            } catch (ExecutionException e) {
-                Debug.Log("register","user ERROR 2"+e.getLocalizedMessage());
-            }
-
-            Debug.Log("REGISTER", "USER CURRENT----------------------------");
-        }
-    }
-    private void logData(){
-     }
-
-    private void enableMyLocation() {
-   /*     if ((ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED))
-        {
-            // Permission to access the location is missing.
-            PermissionTools.requestPermission(this, LOCATION_PERMISSION_REQUEST_CODE,
-                    Manifest.permission.ACCESS_FINE_LOCATION, true);
-         } else if (mMap != null) {
-            // Access to the location has been granted to the app.
-            mMap.setMyLocationEnabled(true);
-        }
-        */
-    }
     private void showMissingPermissionError() {
         PermissionTools.PermissionDeniedDialog
                 .newInstance(true).show(getSupportFragmentManager(), "dialog");
     }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
         if (requestCode != LOCATION_PERMISSION_REQUEST_CODE
-                |requestCode != WRITE_EXTERNAL_STORAGE_PERMISSION_REQUEST_CODE
-                |requestCode !=READ_PHONE_STATE_PERMISSION_REQUEST_CODE) {
+                | requestCode != WRITE_EXTERNAL_STORAGE_PERMISSION_REQUEST_CODE
+                | requestCode != READ_PHONE_STATE_PERMISSION_REQUEST_CODE) {
             return;
         }
 
         if (PermissionTools.isPermissionGranted(permissions, grantResults,
                 Manifest.permission.ACCESS_FINE_LOCATION)
-                && PermissionTools.isPermissionGranted(permissions,grantResults,Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                && PermissionTools.isPermissionGranted(permissions,grantResults,Manifest.permission.READ_PHONE_STATE)
+                && PermissionTools.isPermissionGranted(permissions, grantResults, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                && PermissionTools.isPermissionGranted(permissions, grantResults, Manifest.permission.READ_PHONE_STATE)
                 ) {
             // Enable the my location layer if the permission has been granted.
             //enableMyLocation((AppCompatActivity) getActivity());
@@ -255,10 +203,35 @@ public class ActivityMain extends AppCompatActivity
         } else {
             // Display the missing permission error dialog when the fragments resume.
             mPermissionDenied = true;
-            Debug.Log("","onRequestPermissionsResult");
+            Debug.Log("", "onRequestPermissionsResult");
         }
     }
 
+    private void registerOrLoginUser(){
+        mCurrentFragment = Register_user_fragment.newInstance();
+        try {
+            WUser onlineUser = new AsyncRequestUser(getApplicationContext(), mCurrentUser).execute().get();
+            if (mCurrentUser != null &&onlineUser!=null) {
+                if(mCurrentUser.get_id_user().equals(onlineUser.get_id_user())&&
+                        mCurrentUser.get_imei_phone().equals(onlineUser.get_imei_phone())&&
+                        mCurrentUser.get_password().equals(onlineUser.get_password())) {
+                    mCurrentFragment = Google_map_fragment.newInstance();
+                    if (!OtherTools.isServiceRunning(getApplicationContext(), WTrackerServise.class)
+                            && mCurrentUser != null) {
+                        Intent intent = new Intent(getApplicationContext(), WTrackerServise.class);
+                        startService(intent);
+                        Debug.Log("RUN", "Servise!");
+                    }
+                }else {
+                }
+            } else {
+            }
+        } catch (InterruptedException e) {
+            Debug.Log("GET USER", "ERROR 1 " + e.getLocalizedMessage());
+        } catch (ExecutionException e) {
+            Debug.Log("GET USER", "ERROR 2 " + e.getLocalizedMessage());
+        }
+    }
 
     private void displayFragment() {
         FragmentTransaction fragmentTransaction;
@@ -268,6 +241,48 @@ public class ActivityMain extends AppCompatActivity
         fragmentTransaction.replace(R.id.item_container, mCurrentFragment);
         fragmentTransaction.commit();
     }
+
+    @Override
+    public void onClickButton(String buttonType, WUser user) {
+        Debug.Log("CLICK", " button " + buttonType);
+        if (buttonType.equals("REGISTER")) {
+            if (new OtherTools().registerNewUser(getApplicationContext(), user)) {
+                ((TextView) mCurrentFragment.getView().findViewById(R.id.tvInfoMessage))
+                        .setText("Регистрация успешна!");
+                Debug.Log("REG", "OK");
+                mCurrentFragment = Google_map_fragment.newInstance();
+                displayFragment();
+            } else {
+                Debug.Log("REG", "ERROR");
+                ((TextView) mCurrentFragment.getView().findViewById(R.id.tvInfoMessage))
+                        .setText("Ошибка регистрации!");
+            }
+        } else if (buttonType.equals("LOGIN")) {
+            if (new OtherTools().loginUser(getApplicationContext(), user)) {
+                mCurrentFragment = Google_map_fragment.newInstance();
+                displayFragment();
+
+            }
+
+        }
+    }
+
+    @Override
+    public void onClickButtonAdd(WUser user) {
+        if (new OtherTools().addUser(getApplicationContext(), user)) {
+            ((TextView) mCurrentFragment.getView().findViewById(R.id.tvInfoMessage))
+                    .setText("Пользователь добавлен успешно!");
+            Debug.Log("REG", "OK");
+            //mCurrentFragment = Google_map_fragment.newInstance();
+            //displayFragment();
+        } else {
+            Debug.Log("REG", "ERROR");
+            ((TextView) mCurrentFragment.getView().findViewById(R.id.tvInfoMessage))
+                    .setText("Ошибка добавления!");
+        }
+
+    }
 }
+
 //https://habrahabr.ru/post/257443/
 //https://developers.google.com/maps/documentation/android-api/start?hl=ru
