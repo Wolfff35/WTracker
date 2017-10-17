@@ -27,6 +27,7 @@ import com.wolff.wtracker.tools.Debug;
 import com.wolff.wtracker.tools.PermissionTools;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -40,15 +41,24 @@ import static com.wolff.wtracker.ActivityMain.LOCATION_PERMISSION_REQUEST_CODE;
 public class Google_map_fragment extends Fragment implements OnMapReadyCallback {
     private GoogleMap mMap;
     private MapView mMapView;
-
+    private static final String USER_ = "WUser";
     private Map<WUser,WCoord> mLastUserCoordinates = new HashMap<>();
     private ArrayList<WUser> mUsers = new ArrayList<>();
-    //private WUser mCurrentUser;
+    private WUser mCurrentUser;
+    private String mCurrentUserId;
     private Map<WUser,Marker> mMarkers = new HashMap<>();
 
     private static final String LOG_TAG = "Google_map_fragment";
-    public static Google_map_fragment newInstance(){
-        return new Google_map_fragment();
+    public static Google_map_fragment newInstance(WUser user){
+        Bundle args = new Bundle();
+        if(user!=null) {
+            args.putString(USER_, user.get_id_user());
+        }else {
+            args.putString(USER_,null);
+        }
+        Google_map_fragment fragment = new Google_map_fragment();
+        fragment.setArguments(args);
+        return fragment;
     }
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -57,14 +67,21 @@ public class Google_map_fragment extends Fragment implements OnMapReadyCallback 
         DataLab dataLab = DataLab.get(getContext());
         mUsers = dataLab.getWUserList();
         mLastUserCoordinates = dataLab.getLastCoords(mUsers);
-        //mCurrentUser = dataLab.getCurrentUser(mUsers);
+        if(mCurrentUserId!=null){
+            mCurrentUser = dataLab.getUserById(mCurrentUserId,mUsers);
+        }
         setupMap();
      }
 
     @Override
     public void onCreate(Bundle bundle) {
         super.onCreate(bundle);
-         setHasOptionsMenu(true);
+        try {
+            mCurrentUserId = bundle.getString(USER_);
+        }catch (Exception e){
+            mCurrentUserId=null;
+        }
+        setHasOptionsMenu(true);
         Debug.Log(LOG_TAG,"onCreate");
     }
     @Override
@@ -121,8 +138,16 @@ public class Google_map_fragment extends Fragment implements OnMapReadyCallback 
         mMap.setBuildingsEnabled(true);
         mMap.getUiSettings().setZoomControlsEnabled(true);
         mMap.getUiSettings().setMyLocationButtonEnabled(true);
-        drawLastCoords();
+        if(mCurrentUser==null) {
+            drawLastCoords();
+        }else {
+            drawUserWay(mCurrentUser,new Date());
+        }
     }
+    private void drawUserWay(WUser user,Date currentDate){
+
+    }
+
     private void drawLastCoords(){
         Debug.Log(LOG_TAG,"drawLastCoords BEGIN!!!");
         for (Map.Entry<WUser, WCoord> entry : mLastUserCoordinates.entrySet()) {
@@ -161,6 +186,7 @@ public class Google_map_fragment extends Fragment implements OnMapReadyCallback 
         }
 
     }
+
     private void enableMyLocation(AppCompatActivity activity) {
         Debug.Log(LOG_TAG,"enableMyLocation");
         if ((ContextCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION)

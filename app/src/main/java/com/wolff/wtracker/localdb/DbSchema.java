@@ -57,6 +57,7 @@ public class DbSchema {
          public static final class Cols{
              public static final String ID          = "_id";
              public static final String DATE        = "_date";
+             public static final String TIME        = "_time";
              public static final String COORD_LAT       = "_coord_lat";
              public static final String COORD_LON       = "_coord_lon";
              public static final String COORD_PROVIDER = "_provider";

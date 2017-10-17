@@ -6,42 +6,44 @@ import android.os.AsyncTask;
 import com.wolff.wtracker.localdb.DbSchema;
 import com.wolff.wtracker.model.WCoord;
 import com.wolff.wtracker.model.WUser;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.wolff.wtracker.tools.DateFormatTools;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Date;
+
+import static com.wolff.wtracker.online.DbSchemaOnline.MSSQL_DB;
+import static com.wolff.wtracker.online.DbSchemaOnline.MSSQL_LOGIN;
+import static com.wolff.wtracker.online.DbSchemaOnline.MSSQL_PASS;
 
 /**
  * Created by wolff on 02.10.2017.
  */
 
-public final class AsyncRequestCoords extends AsyncTask<String, Void, ArrayList<WCoord>> {
-    final static String MSSQL_DB = "jdbc:jtds:sqlserver://13.10.12.10:1433:/tessst_gps;";
-    final static String MSSQL_LOGIN = "sa";
-    final static String MSSQL_PASS= "Rfcf,kfyrf";
+public final class AsyncRequestCoords extends AsyncTask<Void, Void, ArrayList<WCoord>> {
 
     private Context mContext;
     private WUser mCurrentUser;
+    private Date mCurrentDate;
     private static final String LOG_TAG = "AsyncRequestCoords";
     private static final String REMOTE_TABLE = "[tessst_gps].[dbo].[t_coords]";
 
 
-    public AsyncRequestCoords(Context context, WUser currentUser) {
+    public AsyncRequestCoords(Context context, WUser currentUser,Date currentDate) {
         this.mContext = context;
         this.mCurrentUser = currentUser;
+        this.mCurrentDate = currentDate;
     }
 
     @Override
-    protected ArrayList<WCoord> doInBackground(String... query) {
+    protected ArrayList<WCoord> doInBackground(Void... query) {
         ArrayList<WCoord> coordList = new ArrayList<>();
-        String SQL = "SELECT * FROM " + REMOTE_TABLE + " WHERE " + DbSchema.Table_Users.Cols.ID_USER + " = " + mCurrentUser.get_id_user();
+        DateFormatTools dft = new DateFormatTools();
+        String SQL = "SELECT * FROM " + REMOTE_TABLE + " WHERE " + DbSchema.Table_Users.Cols.ID_USER + " = " + mCurrentUser.get_id_user()+
+                "AND "+DbSchema.Table_Coords.Cols.DATE+" = "+ dft.dateToString(mCurrentDate,DateFormatTools.DATE_FORMAT_SHORT);
 
         Connection con = OnlineDataLab.get(mContext).getOnlineConnection(MSSQL_DB, MSSQL_LOGIN, MSSQL_PASS);
             Statement st = null;
@@ -49,19 +51,18 @@ public final class AsyncRequestCoords extends AsyncTask<String, Void, ArrayList<
             try {
                 if (con != null) {
                     st = con.createStatement();
-                    rs = st.executeQuery(query[0]);
+                    rs = st.executeQuery(SQL);
                     if (rs != null) {
-                        // Сохранение данных в JSONArray
                         while (rs.next()) {
                             WCoord coord = new WCoord();
                             coord.set_date(rs.getDate(DbSchema.Table_Coords.Cols.DATE));
-                            coord.set_date(rs.getDate(DbSchema.Table_Coords.Cols.ID));
-                            coord.set_date(rs.getDate(DbSchema.Table_Coords.Cols.COORD_PROVIDER));
-                            coord.set_date(rs.getDate(DbSchema.Table_Coords.Cols.COORD_LON));
-                            coord.set_date(rs.getDate(DbSchema.Table_Coords.Cols.COORD_LAT));
-                            coord.set_date(rs.getDate(DbSchema.Table_Coords.Cols.COORD_ACCURACY));
-                            coord.set_date(rs.getDate(DbSchema.Table_Coords.Cols.COORD_ALTITUDE));
-                            coord.set_date(rs.getDate(DbSchema.Table_Coords.Cols.COORD_BEARING));
+                            coord.set_id(rs.getDouble(DbSchema.Table_Coords.Cols.ID));
+                            coord.set_provider(rs.getString(DbSchema.Table_Coords.Cols.COORD_PROVIDER));
+                            coord.set_coord_lon(rs.getDouble(DbSchema.Table_Coords.Cols.COORD_LON));
+                            coord.set_coord_lat(rs.getDouble(DbSchema.Table_Coords.Cols.COORD_LAT));
+                            coord.set_accuracy(rs.getDouble(DbSchema.Table_Coords.Cols.COORD_ACCURACY));
+                            coord.set_altitude(rs.getDouble(DbSchema.Table_Coords.Cols.COORD_ALTITUDE));
+                            coord.set_bearing(rs.getDouble(DbSchema.Table_Coords.Cols.COORD_BEARING));
                             coordList.add(coord);
                         }
                     }

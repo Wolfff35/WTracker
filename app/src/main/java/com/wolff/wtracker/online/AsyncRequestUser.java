@@ -12,9 +12,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import static com.wolff.wtracker.online.AsyncRequestCoords.MSSQL_DB;
-import static com.wolff.wtracker.online.AsyncRequestCoords.MSSQL_LOGIN;
-import static com.wolff.wtracker.online.AsyncRequestCoords.MSSQL_PASS;
+import static com.wolff.wtracker.online.DbSchemaOnline.MSSQL_DB;
+import static com.wolff.wtracker.online.DbSchemaOnline.MSSQL_LOGIN;
+import static com.wolff.wtracker.online.DbSchemaOnline.MSSQL_PASS;
 
 /**
  * Created by wolff on 02.10.2017.

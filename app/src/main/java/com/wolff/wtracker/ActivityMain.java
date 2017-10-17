@@ -210,12 +210,14 @@ public class ActivityMain extends AppCompatActivity
     private void registerOrLoginUser(){
         mCurrentFragment = Register_user_fragment.newInstance();
         try {
-            WUser onlineUser = new AsyncRequestUser(getApplicationContext(), mCurrentUser).execute().get();
+            WUser onlineUser = null;
+            if (mCurrentUser != null) {
+                onlineUser = new AsyncRequestUser(getApplicationContext(), mCurrentUser).execute().get();
+            }
             if (mCurrentUser != null &&onlineUser!=null) {
-                if(mCurrentUser.get_id_user().equals(onlineUser.get_id_user())&&
-                        mCurrentUser.get_imei_phone().equals(onlineUser.get_imei_phone())&&
-                        mCurrentUser.get_password().equals(onlineUser.get_password())) {
-                    mCurrentFragment = Google_map_fragment.newInstance();
+                  if(mCurrentUser.equals(onlineUser)){
+                    Debug.Log("registerOrLogin","есть и на сервере и локально, ВСЕ СОВПАДАЕТ");
+                    mCurrentFragment = Google_map_fragment.newInstance(null);
                     if (!OtherTools.isServiceRunning(getApplicationContext(), WTrackerServise.class)
                             && mCurrentUser != null) {
                         Intent intent = new Intent(getApplicationContext(), WTrackerServise.class);
@@ -223,8 +225,19 @@ public class ActivityMain extends AppCompatActivity
                         Debug.Log("RUN", "Servise!");
                     }
                 }else {
+                    Debug.Log("registerOrLogin","есть и на сервере и локально,  но что-то НЕ СОВПАДАЕТ");
                 }
-            } else {
+            } else if(mCurrentUser==null&&onlineUser!=null){
+            //есть на сервере, нет локально
+                Debug.Log("registerOrLogin","есть на сервере, нет локально");
+            }else if(mCurrentUser!=null&&onlineUser==null){
+                //есть локально, нет онлайн
+                Debug.Log("registerOrLogin","есть локально, нет онлайн");
+
+            }else if(mCurrentUser==null&&onlineUser==null){
+                //есть локально, нет онлайн
+                Debug.Log("registerOrLogin","нет локально, нет онлайн");
+
             }
         } catch (InterruptedException e) {
             Debug.Log("GET USER", "ERROR 1 " + e.getLocalizedMessage());
@@ -243,14 +256,14 @@ public class ActivityMain extends AppCompatActivity
     }
 
     @Override
-    public void onClickButton(String buttonType, WUser user) {
+    public void onClickButtonRegisterLoginUser(String buttonType, WUser user) {
         Debug.Log("CLICK", " button " + buttonType);
         if (buttonType.equals("REGISTER")) {
             if (new OtherTools().registerNewUser(getApplicationContext(), user)) {
                 ((TextView) mCurrentFragment.getView().findViewById(R.id.tvInfoMessage))
                         .setText("Регистрация успешна!");
                 Debug.Log("REG", "OK");
-                mCurrentFragment = Google_map_fragment.newInstance();
+                mCurrentFragment = Google_map_fragment.newInstance(null);
                 displayFragment();
             } else {
                 Debug.Log("REG", "ERROR");
@@ -259,7 +272,7 @@ public class ActivityMain extends AppCompatActivity
             }
         } else if (buttonType.equals("LOGIN")) {
             if (new OtherTools().loginUser(getApplicationContext(), user)) {
-                mCurrentFragment = Google_map_fragment.newInstance();
+                mCurrentFragment = Google_map_fragment.newInstance(null);
                 displayFragment();
 
             }
@@ -268,7 +281,7 @@ public class ActivityMain extends AppCompatActivity
     }
 
     @Override
-    public void onClickButtonAdd(WUser user) {
+    public void onClickButtonAddUser(WUser user) {
         if (new OtherTools().addUser(getApplicationContext(), user)) {
             ((TextView) mCurrentFragment.getView().findViewById(R.id.tvInfoMessage))
                     .setText("Пользователь добавлен успешно!");

@@ -7,6 +7,11 @@ import com.wolff.wtracker.localdb.DbSchema;
  */
 
 public class DbSchemaOnline {
+    public final static String MSSQL_DB = "jdbc:jtds:sqlserver://13.10.12.10:1433:/tessst_gps;";
+    public final static String MSSQL_LOGIN = "sa";
+    public final static String MSSQL_PASS= "Rfcf,kfyrf";
+
+
     public static final String CREATE_TABLE_USERS = "CREATE TABLE [tessst_gps].[dbo].[t_users] ("+
             DbSchema.Table_Users.Cols.ID_USER        +" VARCHAR(14) PRIMARY KEY NOT NULL, "+
             DbSchema.Table_Users.Cols.PASSWORD +" VARCHAR(20), "+
@@ -16,7 +21,9 @@ public class DbSchemaOnline {
             ")";
 
     public static final String CREATE_TABLE_COORDS = "CREATE TABLE [tessst_gps].[dbo].[t_coords] ("+
-            DbSchema.Table_Coords.Cols.DATE          +" DATETIME NOT NULL, "+
+            //DbSchema.Table_Coords.Cols.DATE          +" DATETIME NOT NULL, "+
+            DbSchema.Table_Coords.Cols.DATE          +" DATE NOT NULL, "+
+            DbSchema.Table_Coords.Cols.TIME          +" TIME NOT NULL, "+
             DbSchema.Table_Users.Cols.ID_USER       +" VARCHAR(14) NOT NULL, "+
             DbSchema.Table_Users.Cols.IMEI_PHONE       +" VARCHAR(20), "+
             DbSchema.Table_Coords.Cols.COORD_PROVIDER +" VARCHAR(10) NOT NULL, "+

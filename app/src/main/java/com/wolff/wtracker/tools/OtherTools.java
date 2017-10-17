@@ -70,6 +70,9 @@ public class OtherTools {
     }
 
     public boolean registerNewUser(Context context, WUser user) {
+        if(user==null){
+            return false;
+        }
         try {
             AsyncRequestUser task = new AsyncRequestUser(context, user);
             WUser existUser = task.execute().get();
@@ -98,6 +101,13 @@ public class OtherTools {
     }
 
     public boolean loginUser(Context context, WUser user) {
+        if(user==null){
+            return false;
+        }
+        WUser localUser = DataLab.get(context).queryWUserById(user.get_id_user());
+        if(localUser==null) {
+            DataLab.get(context).user_add(user);
+        }
         try {
             AsyncRequestUser task = new AsyncRequestUser(context, user);
             WUser existUser = task.execute().get();

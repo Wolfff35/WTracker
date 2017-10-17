@@ -34,7 +34,7 @@ public class Register_user_fragment extends Fragment {
     private Register_user_fragment_listener listener;
 
     public interface Register_user_fragment_listener {
-        void onClickButton(String buttonType, WUser user);
+        void onClickButtonRegisterLoginUser(String buttonType, WUser user);
     }
 
     public static Register_user_fragment newInstance() {
@@ -92,7 +92,7 @@ public class Register_user_fragment extends Fragment {
     View.OnClickListener btnLoginOnClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            listener.onClickButton("LOGIN", getUserFromRegForm());
+            listener.onClickButtonRegisterLoginUser("LOGIN", getUserFromRegForm());
         }
     };
     View.OnClickListener btnRegisterOnClickListener = new View.OnClickListener() {
@@ -102,7 +102,7 @@ public class Register_user_fragment extends Fragment {
             btnLogin.setEnabled(false);
 
 
-            listener.onClickButton("REGISTER", getUserFromRegForm());
+            listener.onClickButtonRegisterLoginUser("REGISTER", getUserFromRegForm());
 
             btnRegister.setEnabled(true);
             btnLogin.setEnabled(true);

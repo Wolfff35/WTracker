@@ -14,7 +14,6 @@ import android.widget.EditText;
 
 import com.wolff.wtracker.R;
 import com.wolff.wtracker.model.WUser;
-import com.wolff.wtracker.tools.OtherTools;
 
 import static com.wolff.wtracker.tools.PreferencesTools.IS_DEBUG;
 
@@ -31,7 +30,7 @@ public class Add_user_fragment extends Fragment {
     private Add_user_fragment_listener listener;
 
     public interface Add_user_fragment_listener {
-        void onClickButtonAdd(WUser user);
+        void onClickButtonAddUser(WUser user);
     }
 
     public static Add_user_fragment newInstance() {
@@ -83,7 +82,7 @@ public class Add_user_fragment extends Fragment {
             btnAddUser.setEnabled(false);
 
 
-            listener.onClickButtonAdd(getUserFromRegForm());
+            listener.onClickButtonAddUser(getUserFromRegForm());
 
             btnAddUser.setEnabled(true);
 

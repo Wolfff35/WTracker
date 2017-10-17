@@ -185,7 +185,7 @@ public class DataLab {
         return new DbCursorWrapper(cursor);
     }
 
-    /*   private DbCursorWrapper queryWUserById(String id){
+       public WUser queryWUserById(String id){
            //TODO
            String selection = DbSchema.Table_Users.Cols.ID_USER + " = ?";
            String[] selectionArgs = new String[]{id};
@@ -201,9 +201,18 @@ public class DataLab {
                    groupBy,
                    having,
                    orderBy);
-           return new DbCursorWrapper(cursor);
+           DbCursorWrapper cursorWrapper = new DbCursorWrapper(cursor);
+           cursorWrapper.moveToFirst();
+           //while (!cursorWrapper.isAfterLast()) {
+               WUser user = cursorWrapper.getWUser();
+               //userList.add(user);
+               //cursorWrapper.moveToNext();
+           //}
+           cursorWrapper.close();
+            return user;
+           //return new DbCursorWrapper(cursor);
        }
-   */
+
     private static ContentValues getContentValues_WUsers(WUser user) {
         ContentValues values = new ContentValues();
         values.put(DbSchema.Table_Users.Cols.PHONE, user.get_phone());

@@ -11,9 +11,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-import static com.wolff.wtracker.online.AsyncRequestCoords.MSSQL_DB;
-import static com.wolff.wtracker.online.AsyncRequestCoords.MSSQL_LOGIN;
-import static com.wolff.wtracker.online.AsyncRequestCoords.MSSQL_PASS;
+import static com.wolff.wtracker.online.DbSchemaOnline.MSSQL_DB;
+import static com.wolff.wtracker.online.DbSchemaOnline.MSSQL_LOGIN;
+import static com.wolff.wtracker.online.DbSchemaOnline.MSSQL_PASS;
 
 
 /**

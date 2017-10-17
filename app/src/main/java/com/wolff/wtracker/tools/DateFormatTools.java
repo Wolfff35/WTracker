@@ -1,10 +1,14 @@
 package com.wolff.wtracker.tools;
 
+import android.text.format.Time;
+
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.SimpleTimeZone;
+import java.util.TimeZone;
 
 /**
  * Created by wolff on 30.08.2017.
@@ -12,6 +16,8 @@ import java.util.Locale;
 
 public class DateFormatTools {
     public  static final String DATE_FORMAT_STR = "yyyy-MM-dd'T'HH:mm:ss";
+    public  static final String DATE_FORMAT_SHORT = "yyyy-MM-dd";
+    public  static final String TIME_FORMAT_SHORT = "HH:mm:ss";
     public  static final String DATE_FORMAT_SQL = "yyyy-MM-dd HH:mm:ss";
     public static final String DATE_FORMAT_VID = "dd-MM-yyyy";
     public static final String DATE_FORMAT_VID_FULL = "dd-MM-yyyy HH:mm:ss";
@@ -44,6 +50,8 @@ public class DateFormatTools {
         }
 
         DateFormat format = new SimpleDateFormat(strFormat, Locale.ENGLISH);
+        format.setTimeZone(TimeZone.getTimeZone("GMT+03"));//TODO
+       // format.setTimeZone(Time.getCurrentTimezone());
         return format.format(locDate);
     }
 }

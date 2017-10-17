@@ -100,4 +100,30 @@ public class WUser {
                 ", _pin_for_access=" + _pin_for_access +
                 '}';
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof WUser)) return false;
+
+        WUser wUser = (WUser) o;
+
+        if (!get_id_user().equals(wUser.get_id_user())) return false;
+        if (!get_phone().equals(wUser.get_phone())) return false;
+        //if (!get_imei_phone().equals(wUser.get_imei_phone())) return false;
+        return get_imei_phone().equals(wUser.get_imei_phone());
+        //if (!get_pin_for_access().equals(wUser.get_pin_for_access())) return false;
+        //return get_password().equals(wUser.get_password());
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = get_id_user().hashCode();
+        result = 31 * result + get_phone().hashCode();
+        result = 31 * result + get_imei_phone().hashCode();
+        result = 31 * result + get_pin_for_access().hashCode();
+        result = 31 * result + get_password().hashCode();
+        return result;
+    }
 }

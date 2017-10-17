@@ -13,9 +13,9 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-import static com.wolff.wtracker.online.AsyncRequestCoords.MSSQL_DB;
-import static com.wolff.wtracker.online.AsyncRequestCoords.MSSQL_LOGIN;
-import static com.wolff.wtracker.online.AsyncRequestCoords.MSSQL_PASS;
+import static com.wolff.wtracker.online.DbSchemaOnline.MSSQL_DB;
+import static com.wolff.wtracker.online.DbSchemaOnline.MSSQL_LOGIN;
+import static com.wolff.wtracker.online.DbSchemaOnline.MSSQL_PASS;
 
 
 /**
@@ -31,13 +31,14 @@ public final class AsyncInsertCoords extends AsyncTask<String, Void, Boolean> {
     private static final String SQL = "INSERT into " + REMOTE_TABLE + " (" + DbSchema.Table_Users.Cols.ID_USER +
             "," + DbSchema.Table_Users.Cols.IMEI_PHONE +
             "," + DbSchema.Table_Coords.Cols.DATE +
+            "," + DbSchema.Table_Coords.Cols.TIME +
             "," + DbSchema.Table_Coords.Cols.COORD_PROVIDER +
             "," + DbSchema.Table_Coords.Cols.COORD_LAT +
             "," + DbSchema.Table_Coords.Cols.COORD_LON +
             "," + DbSchema.Table_Coords.Cols.COORD_ACCURACY +
             "," + DbSchema.Table_Coords.Cols.COORD_ALTITUDE +
             "," + DbSchema.Table_Coords.Cols.COORD_BEARING +
-            ") values(?,?,?,?,?,?,?,?,?)";
+            ") values(?,?,?,?,?,?,?,?,?,?)";
 
 
     public AsyncInsertCoords(Context context, WUser currentUser, ArrayList<WCoord> data) {
@@ -60,12 +61,13 @@ public final class AsyncInsertCoords extends AsyncTask<String, Void, Boolean> {
                     prepared.setString(1, mCurrentUser.get_id_user());
                     prepared.setString(2, mCurrentUser.get_imei_phone());
                     prepared.setTimestamp(3, new java.sql.Timestamp(coord.get_date().getTime()));
-                    prepared.setString(4, coord.get_provider());
-                    prepared.setDouble(5, coord.get_coord_lat());
-                    prepared.setDouble(6, coord.get_coord_lon());
-                    prepared.setDouble(7, coord.get_accuracy());
-                    prepared.setDouble(8, coord.get_altitude());
-                    prepared.setDouble(9, coord.get_bearing());
+                    prepared.setTime(4, new java.sql.Time(coord.get_date().getTime()));
+                    prepared.setString(5, coord.get_provider());
+                    prepared.setDouble(6, coord.get_coord_lat());
+                    prepared.setDouble(7, coord.get_coord_lon());
+                    prepared.setDouble(8, coord.get_accuracy());
+                    prepared.setDouble(9, coord.get_altitude());
+                    prepared.setDouble(10, coord.get_bearing());
                     prepared.addBatch();
                 }
                 prepared.executeBatch();
