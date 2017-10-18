@@ -137,7 +137,7 @@ public class DataLab {
         values.put(DbSchema.Table_Coords.Cols.COORD_ACCURACY, coord.get_accuracy());
         values.put(DbSchema.Table_Coords.Cols.COORD_ALTITUDE, coord.get_altitude());
         values.put(DbSchema.Table_Coords.Cols.COORD_BEARING, coord.get_bearing());
-        values.put(DbSchema.Table_Coords.Cols.ID, coord.get_id());
+        //values.put(DbSchema.Table_Coords.Cols.ID, coord.get_id());
         return values;
     }
 
@@ -186,7 +186,6 @@ public class DataLab {
     }
 
        public WUser queryWUserById(String id){
-           //TODO
            String selection = DbSchema.Table_Users.Cols.ID_USER + " = ?";
            String[] selectionArgs = new String[]{id};
 

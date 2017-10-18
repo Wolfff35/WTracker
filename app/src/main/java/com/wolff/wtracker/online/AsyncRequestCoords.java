@@ -8,11 +8,16 @@ import com.wolff.wtracker.model.WCoord;
 import com.wolff.wtracker.model.WUser;
 import com.wolff.wtracker.tools.DateFormatTools;
 
+import java.lang.reflect.Array;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Time;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 
 import static com.wolff.wtracker.online.DbSchemaOnline.MSSQL_DB;
@@ -43,7 +48,7 @@ public final class AsyncRequestCoords extends AsyncTask<Void, Void, ArrayList<WC
         ArrayList<WCoord> coordList = new ArrayList<>();
         DateFormatTools dft = new DateFormatTools();
         String SQL = "SELECT * FROM " + REMOTE_TABLE + " WHERE " + DbSchema.Table_Users.Cols.ID_USER + " = " + mCurrentUser.get_id_user()+
-                "AND "+DbSchema.Table_Coords.Cols.DATE+" = "+ dft.dateToString(mCurrentDate,DateFormatTools.DATE_FORMAT_SHORT);
+                " AND "+DbSchema.Table_Coords.Cols.DATE+" = '"+ dft.dateToString(mCurrentDate,DateFormatTools.DATE_FORMAT_SHORT)+"' ORDER BY "+DbSchema.Table_Coords.Cols.DATE+" DESC";
 
         Connection con = OnlineDataLab.get(mContext).getOnlineConnection(MSSQL_DB, MSSQL_LOGIN, MSSQL_PASS);
             Statement st = null;
@@ -55,8 +60,10 @@ public final class AsyncRequestCoords extends AsyncTask<Void, Void, ArrayList<WC
                     if (rs != null) {
                         while (rs.next()) {
                             WCoord coord = new WCoord();
-                            coord.set_date(rs.getDate(DbSchema.Table_Coords.Cols.DATE));
-                            coord.set_id(rs.getDouble(DbSchema.Table_Coords.Cols.ID));
+                            Date d =rs.getDate(DbSchema.Table_Coords.Cols.DATE);
+                            Time t = rs.getTime(DbSchema.Table_Coords.Cols.TIME);
+                            coord.set_date(t);
+                            //coord.set_id(rs.getDouble(DbSchema.Table_Coords.Cols.ID));
                             coord.set_provider(rs.getString(DbSchema.Table_Coords.Cols.COORD_PROVIDER));
                             coord.set_coord_lon(rs.getDouble(DbSchema.Table_Coords.Cols.COORD_LON));
                             coord.set_coord_lat(rs.getDouble(DbSchema.Table_Coords.Cols.COORD_LAT));
@@ -78,6 +85,13 @@ public final class AsyncRequestCoords extends AsyncTask<Void, Void, ArrayList<WC
                     throw new RuntimeException(e.getMessage());
                 }
             }
+        Collections.sort(coordList, new Comparator<WCoord>() {
+            @Override
+            public int compare(WCoord o1, WCoord o2) {
+                return o1.get_date().compareTo(o2.get_date());
+            }
+        });
+            //Collections.sort(coordList);
         return coordList;
     }
 

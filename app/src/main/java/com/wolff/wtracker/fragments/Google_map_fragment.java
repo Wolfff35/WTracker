@@ -2,6 +2,7 @@ package com.wolff.wtracker.fragments;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
@@ -19,10 +20,13 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.wolff.wtracker.R;
 import com.wolff.wtracker.localdb.DataLab;
 import com.wolff.wtracker.model.WCoord;
 import com.wolff.wtracker.model.WUser;
+import com.wolff.wtracker.online.AsyncRequestCoords;
 import com.wolff.wtracker.tools.Debug;
 import com.wolff.wtracker.tools.PermissionTools;
 
@@ -30,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 import static com.wolff.wtracker.ActivityMain.LOCATION_PERMISSION_REQUEST_CODE;
 
@@ -42,19 +47,23 @@ public class Google_map_fragment extends Fragment implements OnMapReadyCallback 
     private GoogleMap mMap;
     private MapView mMapView;
     private static final String USER_ = "WUser";
+    private static final String DATE_ = "WDATE";
     private Map<WUser,WCoord> mLastUserCoordinates = new HashMap<>();
     private ArrayList<WUser> mUsers = new ArrayList<>();
     private WUser mCurrentUser;
     private String mCurrentUserId;
+    private Date mCurrentDate;
     private Map<WUser,Marker> mMarkers = new HashMap<>();
 
     private static final String LOG_TAG = "Google_map_fragment";
-    public static Google_map_fragment newInstance(WUser user){
+    public static Google_map_fragment newInstance(WUser user,Date currentDate){
         Bundle args = new Bundle();
         if(user!=null) {
             args.putString(USER_, user.get_id_user());
+            args.putSerializable(DATE_, currentDate);
         }else {
             args.putString(USER_,null);
+            args.putString(DATE_,null);
         }
         Google_map_fragment fragment = new Google_map_fragment();
         fragment.setArguments(args);
@@ -67,7 +76,7 @@ public class Google_map_fragment extends Fragment implements OnMapReadyCallback 
         DataLab dataLab = DataLab.get(getContext());
         mUsers = dataLab.getWUserList();
         mLastUserCoordinates = dataLab.getLastCoords(mUsers);
-        if(mCurrentUserId!=null){
+        if(mCurrentUserId!=null&&!mCurrentUserId.isEmpty()){
             mCurrentUser = dataLab.getUserById(mCurrentUserId,mUsers);
         }
         setupMap();
@@ -77,7 +86,8 @@ public class Google_map_fragment extends Fragment implements OnMapReadyCallback 
     public void onCreate(Bundle bundle) {
         super.onCreate(bundle);
         try {
-            mCurrentUserId = bundle.getString(USER_);
+            mCurrentUserId = getArguments().getString(USER_);
+            mCurrentDate = (Date)getArguments().getSerializable(DATE_);
         }catch (Exception e){
             mCurrentUserId=null;
         }
@@ -121,7 +131,7 @@ public class Google_map_fragment extends Fragment implements OnMapReadyCallback 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup viewGroup, Bundle bundle) {
        super.onCreateView(inflater, viewGroup, bundle);
-        View view = inflater.inflate(R.layout.google_map_fragment, viewGroup, false);
+          View view = inflater.inflate(R.layout.google_map_fragment, viewGroup, false);
         mMapView = (MapView)view.findViewById(R.id.mapView);
         mMapView.onCreate(bundle);
         mMapView.getMapAsync(this);
@@ -138,14 +148,46 @@ public class Google_map_fragment extends Fragment implements OnMapReadyCallback 
         mMap.setBuildingsEnabled(true);
         mMap.getUiSettings().setZoomControlsEnabled(true);
         mMap.getUiSettings().setMyLocationButtonEnabled(true);
-        if(mCurrentUser==null) {
-            drawLastCoords();
+        if(mCurrentUserId!=null) {
+            Debug.Log(LOG_TAG,"1 ========== "+mCurrentUserId);
+            drawUserWay(mCurrentUser,mCurrentDate);
         }else {
-            drawUserWay(mCurrentUser,new Date());
+            Debug.Log(LOG_TAG,"2 ========== "+mCurrentUserId);
+            drawLastCoords();
         }
     }
     private void drawUserWay(WUser user,Date currentDate){
+        Debug.Log(LOG_TAG,"drawUserWay - "+user);
+        AsyncRequestCoords task = new AsyncRequestCoords(getContext(),user,currentDate);
+        ArrayList<WCoord> userCoords =new ArrayList<>();
+        try {
+            userCoords = task.execute().get();
+        } catch (InterruptedException e) {
+            Debug.Log(LOG_TAG,"ERROR 1 === "+e.getLocalizedMessage());
+        } catch (ExecutionException e) {
+            Debug.Log(LOG_TAG,"ERROR 2 === "+e.getLocalizedMessage());
+        }
+        Debug.Log(LOG_TAG,"Coords = "+ userCoords.toString());
+        if(userCoords.size()>0){
+            double minLat=180,minLon=180,maxLat=-180,maxLon=-180;
+            PolylineOptions opt = new PolylineOptions();
+            for(int i=0;i<userCoords.size();i++){
+                double currLat = userCoords.get(i).get_coord_lat();
+                double currLon = userCoords.get(i).get_coord_lon();
+                opt.add(new LatLng(currLat,currLon));
+                if(currLat<minLat) minLat=currLat;
+                if(currLat>maxLat) maxLat=currLat;
+                if(currLon<minLon) minLon=currLon;
+                if(currLon>maxLon) maxLon=currLon;
 
+            }
+            Debug.Log(LOG_TAG,"minLat = "+minLat+"; minLon = "+minLon);
+            Debug.Log(LOG_TAG,"maxLat = "+maxLat+"; maxLon = "+maxLon);
+            opt.color(Color.MAGENTA);
+            Polyline line = mMap.addPolyline(opt);
+            LatLngBounds AREA = new LatLngBounds(new LatLng(minLat-1,minLon-1),new LatLng(maxLat+1,maxLon+1));
+            mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(AREA,0));
+        }
     }
 
     private void drawLastCoords(){
@@ -174,12 +216,7 @@ public class Google_map_fragment extends Fragment implements OnMapReadyCallback 
                 Debug.Log("MARKER","ADD");
             }
 
-           // LatLngBounds POSITION = new LatLngBounds(ll, ll);
-
-           // mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(POSITION, 0));
-
-            //mMap.moveCamera(CameraUpdateFactory.newLatLng(ll));
-            CameraPosition position = new CameraPosition(ll,10,0,0);
+             CameraPosition position = new CameraPosition(ll,10,0,0);
             mMap.moveCamera(CameraUpdateFactory.newCameraPosition(position));
             Debug.Log("SHOW",""+user.get_id_user());
 

@@ -1,6 +1,7 @@
 package com.wolff.wtracker;
 
 import android.Manifest;
+import android.app.DialogFragment;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -17,6 +18,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 
 import com.wolff.wtracker.fragments.Add_user_fragment;
@@ -26,10 +28,10 @@ import com.wolff.wtracker.localdb.DataLab;
 import com.wolff.wtracker.online.AsyncExecute;
 import com.wolff.wtracker.model.WCoord;
 import com.wolff.wtracker.model.WUser;
-import com.wolff.wtracker.online.AsyncInsertUser;
 import com.wolff.wtracker.online.AsyncRequestUser;
 import com.wolff.wtracker.online.DbSchemaOnline;
 import com.wolff.wtracker.online.OnlineDataLab;
+import com.wolff.wtracker.tools.DateFormatTools;
 import com.wolff.wtracker.tools.Debug;
 import com.wolff.wtracker.tools.OtherTools;
 import com.wolff.wtracker.tools.PermissionTools;
@@ -38,8 +40,6 @@ import com.wolff.wtracker.tools.PermissionTools;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.concurrent.ExecutionException;
-
-import static com.wolff.wtracker.tools.PreferencesTools.IS_DEBUG;
 
 public class ActivityMain extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
@@ -51,18 +51,24 @@ public class ActivityMain extends AppCompatActivity
     private ArrayList<WUser> mUsers = new ArrayList<>();
     private WUser mCurrentUser;
     private boolean mPermissionDenied = false;
-
+    private Date mCurrentDate = new Date();
     public static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private static final int WRITE_EXTERNAL_STORAGE_PERMISSION_REQUEST_CODE = 2;
     private static final int READ_PHONE_STATE_PERMISSION_REQUEST_CODE = 3;
 
-
+    private boolean mShowDatePicker = false;
+    private Button btnDate;
+    private int DATE_CHOOSE=1;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        btnDate = (Button)findViewById(R.id.btnDate);
+        setViewsVisibility();
+        btnDate.setOnClickListener(btnDateListener);
 
 
         final NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
@@ -172,6 +178,17 @@ public class ActivityMain extends AppCompatActivity
     public boolean onNavigationItemSelected(MenuItem item) {
         int id = item.getItemId();
         Debug.Log("NAVIGATION","id = "+id);
+        if(id==0) {
+            mCurrentFragment = Google_map_fragment.newInstance(null,null);
+            mShowDatePicker=false;
+        }else {
+            mCurrentDate = new Date();
+            mShowDatePicker=true;
+            mCurrentFragment = Google_map_fragment.newInstance(mUsers.get(id-1),mCurrentDate);
+        }
+        //TODO
+        setViewsVisibility();
+        displayFragment();
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
@@ -217,7 +234,7 @@ public class ActivityMain extends AppCompatActivity
             if (mCurrentUser != null &&onlineUser!=null) {
                   if(mCurrentUser.equals(onlineUser)){
                     Debug.Log("registerOrLogin","есть и на сервере и локально, ВСЕ СОВПАДАЕТ");
-                    mCurrentFragment = Google_map_fragment.newInstance(null);
+                    mCurrentFragment = Google_map_fragment.newInstance(null,null);
                     if (!OtherTools.isServiceRunning(getApplicationContext(), WTrackerServise.class)
                             && mCurrentUser != null) {
                         Intent intent = new Intent(getApplicationContext(), WTrackerServise.class);
@@ -263,7 +280,7 @@ public class ActivityMain extends AppCompatActivity
                 ((TextView) mCurrentFragment.getView().findViewById(R.id.tvInfoMessage))
                         .setText("Регистрация успешна!");
                 Debug.Log("REG", "OK");
-                mCurrentFragment = Google_map_fragment.newInstance(null);
+                mCurrentFragment = Google_map_fragment.newInstance(null,null);
                 displayFragment();
             } else {
                 Debug.Log("REG", "ERROR");
@@ -272,7 +289,7 @@ public class ActivityMain extends AppCompatActivity
             }
         } else if (buttonType.equals("LOGIN")) {
             if (new OtherTools().loginUser(getApplicationContext(), user)) {
-                mCurrentFragment = Google_map_fragment.newInstance(null);
+                mCurrentFragment = Google_map_fragment.newInstance(null,null);
                 displayFragment();
 
             }
@@ -295,6 +312,24 @@ public class ActivityMain extends AppCompatActivity
         }
 
     }
+    private void setViewsVisibility(){
+        if(mShowDatePicker){
+            btnDate.setVisibility(View.VISIBLE);
+            btnDate.setText(new DateFormatTools().dateToString(mCurrentDate,DateFormatTools.DATE_FORMAT_VID));
+        }else {
+            btnDate.setVisibility(View.INVISIBLE);
+        }
+    }
+    private View.OnClickListener btnDateListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            //DialogFragment dateDialog = new DatePicker_dialogq();
+            //dateDialog.setTargetFragment(Operation_item_fragment.this,DIALOG_REQUEST_DATE);
+            //dateDialog.show(getFragmentManager(),dateDialog.getClass().getName());
+            showDialog(DATE_CHOOSE);
+            //TODO https://android-developers.googleblog.com/2012/05/using-dialogfragments.html
+        }
+    };
 }
 
 //https://habrahabr.ru/post/257443/

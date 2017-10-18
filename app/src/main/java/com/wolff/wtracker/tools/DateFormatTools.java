@@ -16,7 +16,7 @@ import java.util.TimeZone;
 
 public class DateFormatTools {
     public  static final String DATE_FORMAT_STR = "yyyy-MM-dd'T'HH:mm:ss";
-    public  static final String DATE_FORMAT_SHORT = "yyyy-MM-dd";
+    public  static final String DATE_FORMAT_SHORT = "yyyy/MM/dd";
     public  static final String TIME_FORMAT_SHORT = "HH:mm:ss";
     public  static final String DATE_FORMAT_SQL = "yyyy-MM-dd HH:mm:ss";
     public static final String DATE_FORMAT_VID = "dd-MM-yyyy";
@@ -54,4 +54,11 @@ public class DateFormatTools {
        // format.setTimeZone(Time.getCurrentTimezone());
         return format.format(locDate);
     }
+    public String addZero(int num){
+        if(String.valueOf(num).length()==1){
+            return "0"+String.valueOf(num);
+        }
+        return String.valueOf(num);
+    }
+
 }

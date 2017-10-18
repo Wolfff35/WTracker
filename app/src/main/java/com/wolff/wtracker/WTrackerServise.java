@@ -33,10 +33,10 @@ import static com.wolff.wtracker.tools.PreferencesTools.IS_DEBUG;
  */
 
 public class WTrackerServise extends Service {
-    private static final int REPEAT_TIME = 3;
+    private static final int REPEAT_TIME = 1;
     private LocationService mLocationService;
     private WUser mCurrentUser;
-    private Map<WUser, WCoord> mLastUserCoordinates = new HashMap<>();
+    //private Map<WUser, WCoord> mLastUserCoordinates = new HashMap<>();
     private ArrayList<WUser> mUsers;
     private String mPhoneIMEI;
     @Nullable
@@ -49,7 +49,7 @@ public class WTrackerServise extends Service {
         DataLab dataLab = DataLab.get(getApplicationContext());
         mUsers = dataLab.getWUserList();
         mCurrentUser = dataLab.getCurrentUser(mUsers);
-        mLastUserCoordinates = dataLab.getLastCoords(mUsers);
+        //mLastUserCoordinates = dataLab.getLastCoords(mUsers);
         mLocationService = LocationService.getLocationManager(getApplicationContext(), mCurrentUser);
         Notification.Builder builder = new Notification.Builder(this)
                 .setSmallIcon(R.mipmap.ic_launcher)
