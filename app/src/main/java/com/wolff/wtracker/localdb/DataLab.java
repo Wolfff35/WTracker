@@ -203,15 +203,10 @@ public class DataLab {
            DbCursorWrapper cursorWrapper = new DbCursorWrapper(cursor);
            WUser user = null;
            if(cursorWrapper.moveToFirst()) {
-               //while (!cursorWrapper.isAfterLast()) {
                user = cursorWrapper.getWUser();
-               //userList.add(user);
-               //cursorWrapper.moveToNext();
-               //}
            }
            cursorWrapper.close();
             return user;
-           //return new DbCursorWrapper(cursor);
        }
 
     private static ContentValues getContentValues_WUsers(WUser user) {

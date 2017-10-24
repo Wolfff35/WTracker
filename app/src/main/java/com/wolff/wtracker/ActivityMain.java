@@ -1,7 +1,8 @@
 package com.wolff.wtracker;
 
 import android.Manifest;
-import android.app.DialogFragment;
+import android.app.DatePickerDialog;
+import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -19,6 +20,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.TextView;
 
 import com.wolff.wtracker.fragments.Add_user_fragment;
@@ -38,6 +40,7 @@ import com.wolff.wtracker.tools.PermissionTools;
 
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.ExecutionException;
 
@@ -45,20 +48,22 @@ public class ActivityMain extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
         ActivityCompat.OnRequestPermissionsResultCallback,
         Register_user_fragment.Register_user_fragment_listener,
-        Add_user_fragment.Add_user_fragment_listener{
+        Add_user_fragment.Add_user_fragment_listener {
 
     private Fragment mCurrentFragment;
     private ArrayList<WUser> mUsers = new ArrayList<>();
     private WUser mCurrentUser;
+    private int mCurrentUserIndex;//индекс пользователя в массиве юзеров
     private boolean mPermissionDenied = false;
     private Date mCurrentDate = new Date();
+
     public static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private static final int WRITE_EXTERNAL_STORAGE_PERMISSION_REQUEST_CODE = 2;
     private static final int READ_PHONE_STATE_PERMISSION_REQUEST_CODE = 3;
 
     private boolean mShowDatePicker = false;
     private Button btnDate;
-    private int DATE_CHOOSE=1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -66,9 +71,9 @@ public class ActivityMain extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        btnDate = (Button)findViewById(R.id.btnDate);
-        setViewsVisibility();
+        btnDate = (Button) findViewById(R.id.btnDate);
         btnDate.setOnClickListener(btnDateListener);
+        setViewsVisibility();
 
 
         final NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
@@ -81,10 +86,10 @@ public class ActivityMain extends AppCompatActivity
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close){
-            public void onDrawerOpened(View drawerView){
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close) {
+            public void onDrawerOpened(View drawerView) {
                 super.onDrawerOpened(drawerView);
-                new OtherTools().createDrawerMenu(mUsers,navigationView.getMenu());
+                new OtherTools().createDrawerMenu(mUsers, navigationView.getMenu());
             }
         };
         drawer.addDrawerListener(toggle);
@@ -135,7 +140,7 @@ public class ActivityMain extends AppCompatActivity
                 //drawLastCoords();
                 break;
             }
-            case R.id.action_stop_service: {
+     /*       case R.id.action_stop_service: {
                 Intent intent = new Intent(getApplicationContext(), WTrackerServise.class);
                 stopService(intent);
                 Debug.Log("STOP", "Servise!");
@@ -154,6 +159,7 @@ public class ActivityMain extends AppCompatActivity
                 onlineDataLab.writeCoordsToServer(mCurrentUser, coords);
                 break;
             }
+            */
             case R.id.action_create_online_tables: {
                 try {
                     AsyncExecute ac = new AsyncExecute(getApplicationContext());
@@ -177,16 +183,16 @@ public class ActivityMain extends AppCompatActivity
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         int id = item.getItemId();
-        Debug.Log("NAVIGATION","id = "+id);
-        if(id==0) {
-            mCurrentFragment = Google_map_fragment.newInstance(null,null);
-            mShowDatePicker=false;
-        }else {
+        Debug.Log("NAVIGATION", "id = " + id);
+        if (id == 0) {
+            mCurrentFragment = Google_map_fragment.newInstance(null, null);
+            mShowDatePicker = false;
+        } else {
             mCurrentDate = new Date();
-            mShowDatePicker=true;
-            mCurrentFragment = Google_map_fragment.newInstance(mUsers.get(id-1),mCurrentDate);
+            mShowDatePicker = true;
+            mCurrentUserIndex = id;
+            mCurrentFragment = Google_map_fragment.newInstance(mUsers.get(mCurrentUserIndex - 1), mCurrentDate);
         }
-        //TODO
         setViewsVisibility();
         displayFragment();
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -215,6 +221,8 @@ public class ActivityMain extends AppCompatActivity
                 && PermissionTools.isPermissionGranted(permissions, grantResults, Manifest.permission.READ_PHONE_STATE)
                 ) {
             // Enable the my location layer if the permission has been granted.
+            mCurrentFragment = Google_map_fragment.newInstance(null, null);
+            displayFragment();
             //enableMyLocation((AppCompatActivity) getActivity());
             //drawLastCoords();
         } else {
@@ -224,36 +232,36 @@ public class ActivityMain extends AppCompatActivity
         }
     }
 
-    private void registerOrLoginUser(){
+    private void registerOrLoginUser() {
         mCurrentFragment = Register_user_fragment.newInstance();
         try {
             WUser onlineUser = null;
             if (mCurrentUser != null) {
                 onlineUser = new AsyncRequestUser(getApplicationContext(), mCurrentUser).execute().get();
             }
-            if (mCurrentUser != null &&onlineUser!=null) {
-                  if(mCurrentUser.equals(onlineUser)){
-                    Debug.Log("registerOrLogin","есть и на сервере и локально, ВСЕ СОВПАДАЕТ");
-                    mCurrentFragment = Google_map_fragment.newInstance(null,null);
+            if (mCurrentUser != null && onlineUser != null) {
+                if (mCurrentUser.equals(onlineUser)) {
+                    Debug.Log("registerOrLogin", "есть и на сервере и локально, ВСЕ СОВПАДАЕТ");
+                    mCurrentFragment = Google_map_fragment.newInstance(null, null);
                     if (!OtherTools.isServiceRunning(getApplicationContext(), WTrackerServise.class)
                             && mCurrentUser != null) {
                         Intent intent = new Intent(getApplicationContext(), WTrackerServise.class);
                         startService(intent);
                         Debug.Log("RUN", "Servise!");
                     }
-                }else {
-                    Debug.Log("registerOrLogin","есть и на сервере и локально,  но что-то НЕ СОВПАДАЕТ");
+                } else {
+                    Debug.Log("registerOrLogin", "есть и на сервере и локально,  но что-то НЕ СОВПАДАЕТ");
                 }
-            } else if(mCurrentUser==null&&onlineUser!=null){
-            //есть на сервере, нет локально
-                Debug.Log("registerOrLogin","есть на сервере, нет локально");
-            }else if(mCurrentUser!=null&&onlineUser==null){
+            } else if (mCurrentUser == null && onlineUser != null) {
+                //есть на сервере, нет локально
+                Debug.Log("registerOrLogin", "есть на сервере, нет локально");
+            } else if (mCurrentUser != null && onlineUser == null) {
                 //есть локально, нет онлайн
-                Debug.Log("registerOrLogin","есть локально, нет онлайн");
+                Debug.Log("registerOrLogin", "есть локально, нет онлайн");
 
-            }else if(mCurrentUser==null&&onlineUser==null){
+            } else if (mCurrentUser == null && onlineUser == null) {
                 //есть локально, нет онлайн
-                Debug.Log("registerOrLogin","нет локально, нет онлайн");
+                Debug.Log("registerOrLogin", "нет локально, нет онлайн");
 
             }
         } catch (InterruptedException e) {
@@ -275,21 +283,21 @@ public class ActivityMain extends AppCompatActivity
     @Override
     public void onClickButtonRegisterLoginUser(String buttonType, WUser user) {
         Debug.Log("CLICK", " button " + buttonType);
+        TextView tvInfoMessage = (TextView)mCurrentFragment.getView()
+                .findViewById(R.id.tvInfoMessage);
         if (buttonType.equals("REGISTER")) {
             if (new OtherTools().registerNewUser(getApplicationContext(), user)) {
-                ((TextView) mCurrentFragment.getView().findViewById(R.id.tvInfoMessage))
-                        .setText("Регистрация успешна!");
+                tvInfoMessage.setText("Регистрация успешна!");
                 Debug.Log("REG", "OK");
-                mCurrentFragment = Google_map_fragment.newInstance(null,null);
+                mCurrentFragment = Google_map_fragment.newInstance(null, null);
                 displayFragment();
             } else {
                 Debug.Log("REG", "ERROR");
-                ((TextView) mCurrentFragment.getView().findViewById(R.id.tvInfoMessage))
-                        .setText("Ошибка регистрации!");
+                tvInfoMessage.setText("Ошибка регистрации!");
             }
         } else if (buttonType.equals("LOGIN")) {
             if (new OtherTools().loginUser(getApplicationContext(), user)) {
-                mCurrentFragment = Google_map_fragment.newInstance(null,null);
+                mCurrentFragment = Google_map_fragment.newInstance(null, null);
                 displayFragment();
 
             }
@@ -303,8 +311,8 @@ public class ActivityMain extends AppCompatActivity
             ((TextView) mCurrentFragment.getView().findViewById(R.id.tvInfoMessage))
                     .setText("Пользователь добавлен успешно!");
             Debug.Log("REG", "OK");
-            //mCurrentFragment = Google_map_fragment.newInstance();
-            //displayFragment();
+            mCurrentFragment = Google_map_fragment.newInstance(null,null);
+            displayFragment();
         } else {
             Debug.Log("REG", "ERROR");
             ((TextView) mCurrentFragment.getView().findViewById(R.id.tvInfoMessage))
@@ -312,25 +320,44 @@ public class ActivityMain extends AppCompatActivity
         }
 
     }
-    private void setViewsVisibility(){
-        if(mShowDatePicker){
+
+    private void setViewsVisibility() {
+        if (mShowDatePicker) {
             btnDate.setVisibility(View.VISIBLE);
-            btnDate.setText(new DateFormatTools().dateToString(mCurrentDate,DateFormatTools.DATE_FORMAT_VID));
-        }else {
+            btnDate.setText(new DateFormatTools().dateToString(mCurrentDate, DateFormatTools.DATE_FORMAT_VID));
+        } else {
             btnDate.setVisibility(View.INVISIBLE);
         }
     }
+
     private View.OnClickListener btnDateListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            //DialogFragment dateDialog = new DatePicker_dialogq();
-            //dateDialog.setTargetFragment(Operation_item_fragment.this,DIALOG_REQUEST_DATE);
-            //dateDialog.show(getFragmentManager(),dateDialog.getClass().getName());
-            showDialog(DATE_CHOOSE);
-            //TODO https://android-developers.googleblog.com/2012/05/using-dialogfragments.html
+            // определяем текущую дату
+            Calendar c = Calendar.getInstance();
+            int year = c.get(Calendar.YEAR);
+            int month = c.get(Calendar.MONTH);
+            int day = c.get(Calendar.DAY_OF_MONTH);
+
+            // создаем DatePickerDialog и возвращаем его
+            Dialog picker = new DatePickerDialog(ActivityMain.this, onDateSetListener,
+                    year, month, day);
+            picker.setTitle("Дата маршрута");
+            picker.show();
+        }
+    };
+    DatePickerDialog.OnDateSetListener onDateSetListener = new DatePickerDialog.OnDateSetListener() {
+        @Override
+        public void onDateSet(DatePicker datePicker, int i, int i1, int i2) {
+            Calendar calendar = Calendar.getInstance();
+            calendar.set(Calendar.YEAR, i);
+            calendar.set(Calendar.MONTH, i1);
+            calendar.set(Calendar.DATE, i2);
+            mCurrentDate = calendar.getTime();
+            Debug.Log("CHOOSE DATE", "" + mCurrentDate.toString());
+            mCurrentFragment = Google_map_fragment.newInstance(mUsers.get(mCurrentUserIndex - 1), mCurrentDate);
+            setViewsVisibility();
+            displayFragment();
         }
     };
 }
-
-//https://habrahabr.ru/post/257443/
-//https://developers.google.com/maps/documentation/android-api/start?hl=ru

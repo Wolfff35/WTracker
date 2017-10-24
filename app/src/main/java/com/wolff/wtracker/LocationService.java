@@ -177,9 +177,7 @@ public class LocationService implements LocationListener {
                 dataLab.last_coord_add(mCurrentUser, coord);
             }
             Debug.Log("UPDATE", "COORDS: lat: " + mLocation.getLatitude() + "; lon: " + mLocation.getLongitude() + "; provider = " + mLocation.getProvider());
-            //Debug.Log("UPDATE", "COORDS: accuracy: " + mLocation.getAccuracy() + "; altitude: " + mLocation.getAltitude() + "; bearing = " + mLocation.getBearing());
-            //Debug.Log("UPDATE", "COORDS: ElapsedRealtimeNanos: " + mLocation.getElapsedRealtimeNanos() + "; speed: " + mLocation.getSpeed() + "; time = " + mLocation.getTime());
-            //Debug.Log("=", "================================================================================");
+            Debug.Log("=", "================================================================================");
             mLastCoord=coord;
         }
     }

@@ -17,16 +17,11 @@ import com.wolff.wtracker.model.WCoord;
 import com.wolff.wtracker.model.WUser;
 import com.wolff.wtracker.online.AsyncInsertCoords;
 import com.wolff.wtracker.tools.Debug;
-import com.wolff.wtracker.tools.OtherTools;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-
-import static com.wolff.wtracker.tools.PreferencesTools.IS_DEBUG;
 
 /**
  * Created by wolff on 13.09.2017.
@@ -36,9 +31,7 @@ public class WTrackerServise extends Service {
     private static final int REPEAT_TIME = 1;
     private LocationService mLocationService;
     private WUser mCurrentUser;
-    //private Map<WUser, WCoord> mLastUserCoordinates = new HashMap<>();
     private ArrayList<WUser> mUsers;
-    private String mPhoneIMEI;
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -49,23 +42,14 @@ public class WTrackerServise extends Service {
         DataLab dataLab = DataLab.get(getApplicationContext());
         mUsers = dataLab.getWUserList();
         mCurrentUser = dataLab.getCurrentUser(mUsers);
-        //mLastUserCoordinates = dataLab.getLastCoords(mUsers);
         mLocationService = LocationService.getLocationManager(getApplicationContext(), mCurrentUser);
-        Notification.Builder builder = new Notification.Builder(this)
-                .setSmallIcon(R.mipmap.ic_launcher)
-                .setContentTitle("Looking for " + mCurrentUser.get_id_user());
-        Notification notification;
-        if (Build.VERSION.SDK_INT < 16)
-            notification = builder.getNotification();
-        else
-            notification = builder.build();
-        startForeground(777, notification);
+        sendNotification();
         Debug.Log("SERVICE", "onCreate");
 
     }
 
     public int onStartCommand(Intent intent, int flags, int startId) {
-        sendCoordsToServer();
+        sendLocalCoordsToServer();
         Debug.Log("SERVICE", "onStartCommand");
         return START_STICKY;
     }
@@ -92,7 +76,22 @@ public class WTrackerServise extends Service {
         }
     }
 
-    private void sendCoordsToServer() {
+    private void sendNotification(){
+        Notification.Builder builder = new Notification.Builder(this)
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentTitle("WTracker. Status: "+isOnline())
+                .setContentText("Looking for " + mCurrentUser.get_id_user());
+        Notification notification;
+
+        Intent intent = new Intent(this,ActivityMain.class);
+        if (Build.VERSION.SDK_INT < 16)
+            notification = builder.getNotification();
+        else
+            notification = builder.build();
+        startForeground(777, notification);
+    }
+
+    private void sendLocalCoordsToServer() {
         final ScheduledExecutorService scheduler =
                 Executors.newScheduledThreadPool(3);
         scheduler.scheduleAtFixedRate(new Runnable() {
