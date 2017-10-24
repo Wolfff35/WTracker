@@ -201,12 +201,14 @@ public class DataLab {
                    having,
                    orderBy);
            DbCursorWrapper cursorWrapper = new DbCursorWrapper(cursor);
-           cursorWrapper.moveToFirst();
-           //while (!cursorWrapper.isAfterLast()) {
-               WUser user = cursorWrapper.getWUser();
+           WUser user = null;
+           if(cursorWrapper.moveToFirst()) {
+               //while (!cursorWrapper.isAfterLast()) {
+               user = cursorWrapper.getWUser();
                //userList.add(user);
                //cursorWrapper.moveToNext();
-           //}
+               //}
+           }
            cursorWrapper.close();
             return user;
            //return new DbCursorWrapper(cursor);
