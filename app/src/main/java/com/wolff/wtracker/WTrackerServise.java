@@ -2,6 +2,7 @@ package com.wolff.wtracker;
 
 import android.app.AlarmManager;
 import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
@@ -11,6 +12,7 @@ import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.support.v4.app.TaskStackBuilder;
 
 import com.wolff.wtracker.localdb.DataLab;
 import com.wolff.wtracker.model.WCoord;
@@ -32,6 +34,7 @@ public class WTrackerServise extends Service {
     private LocationService mLocationService;
     private WUser mCurrentUser;
     private ArrayList<WUser> mUsers;
+
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -44,26 +47,21 @@ public class WTrackerServise extends Service {
         mCurrentUser = dataLab.getCurrentUser(mUsers);
         mLocationService = LocationService.getLocationManager(getApplicationContext(), mCurrentUser);
         sendNotification();
-        Debug.Log("SERVICE", "onCreate");
 
     }
 
     public int onStartCommand(Intent intent, int flags, int startId) {
         sendLocalCoordsToServer();
-        Debug.Log("SERVICE", "onStartCommand");
         return START_STICKY;
     }
 
     public void onDestroy() {
         super.onDestroy();
         mLocationService = null;
-        Debug.Log("SERVICE", "onDestroy");
-
     }
 
     @Override
     public void onTaskRemoved(Intent rootIntent) {
-        Debug.Log("SERVICE", "onTaskRemoved");
         mLocationService = null;
         if (Build.VERSION.SDK_INT == 19) {
             Intent restartIntent = new Intent(this, getClass());
@@ -76,19 +74,38 @@ public class WTrackerServise extends Service {
         }
     }
 
-    private void sendNotification(){
+    private void sendNotification() {
+        int REQUEST_CODE=0;
+        int ID_NOTIFICATION=777;
+        String status;
+        if(isOnline()){
+            status="OnLine";
+        }else {
+            status="OffLine";
+        }
         Notification.Builder builder = new Notification.Builder(this)
                 .setSmallIcon(R.mipmap.ic_launcher)
-                .setContentTitle("WTracker. Status: "+isOnline())
+                .setContentTitle("WTracker. Status: " + status)
                 .setContentText("Looking for " + mCurrentUser.get_id_user());
+        Intent intent = new Intent(this, ActivityMain.class);
+
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+        stackBuilder.addParentStack(ActivityMain.class);
+        stackBuilder.addNextIntent(intent);
+
+        PendingIntent pendingIntent = stackBuilder.getPendingIntent(REQUEST_CODE,PendingIntent.FLAG_UPDATE_CURRENT);
+        builder.setContentIntent(pendingIntent);
+        //NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        //notificationManager.notify(ID_NOTIFICATION,builder.build());
+
         Notification notification;
 
-        Intent intent = new Intent(this,ActivityMain.class);
-        if (Build.VERSION.SDK_INT < 16)
+         if (Build.VERSION.SDK_INT < 16)
             notification = builder.getNotification();
         else
             notification = builder.build();
-        startForeground(777, notification);
+        startForeground(ID_NOTIFICATION, notification);
+
     }
 
     private void sendLocalCoordsToServer() {
@@ -97,7 +114,7 @@ public class WTrackerServise extends Service {
         scheduler.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
-
+                sendNotification();
                 if (!isOnline()) {
                     return;
                 }

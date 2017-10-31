@@ -41,15 +41,11 @@ public final class AsyncInsertUser extends AsyncTask<String, Void, Boolean> {
 
     @Override
     protected Boolean doInBackground(String... proc_params) {
-        Debug.Log(LOG_TAG,"Begin task");
         OnlineDataLab onlineDataLab = OnlineDataLab.get(mContext);
         Connection con = onlineDataLab.getOnlineConnection(MSSQL_DB, MSSQL_LOGIN, MSSQL_PASS);
-        Debug.Log(LOG_TAG,"Get connection");
         if (con != null) {
             PreparedStatement prepared = null;
             try {
-                Debug.Log(LOG_TAG,"Prepare statement");
-
                 prepared = con.prepareStatement(SQL);
                 prepared.setString(1, mCurrentUser.get_id_user());
                 prepared.setString(2, mCurrentUser.get_imei_phone());
@@ -57,10 +53,9 @@ public final class AsyncInsertUser extends AsyncTask<String, Void, Boolean> {
                 prepared.setString(4, mCurrentUser.get_pin_for_access());
                 prepared.addBatch();
                 prepared.executeBatch();
-                Debug.Log(LOG_TAG,"SUCCESS");
                 return true;
             } catch (SQLException e) {
-                Debug.Log("AsyncInsertUser", "ERROR 4 " + e.getLocalizedMessage());
+                Debug.Log(LOG_TAG, "ERROR 4 " + e.getLocalizedMessage());
 
             } finally {
                 try {
@@ -68,12 +63,10 @@ public final class AsyncInsertUser extends AsyncTask<String, Void, Boolean> {
                     if (con != null) con.close();
                 } catch (SQLException e) {
                     //throw new RuntimeException(e.getMessage());
-                    Debug.Log("AsyncInsertUser", "ERROR 5 " + e.getLocalizedMessage());
+                    Debug.Log(LOG_TAG, "ERROR 5 " + e.getLocalizedMessage());
                 }
             }
         }
-        Debug.Log(LOG_TAG,"FINISH ERROR");
         return false;
     }
 }
-    //https://habrahabr.ru/post/206790/

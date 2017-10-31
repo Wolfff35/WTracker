@@ -13,6 +13,7 @@ import android.support.v4.content.ContextCompat;
 import com.wolff.wtracker.localdb.DataLab;
 import com.wolff.wtracker.model.WCoord;
 import com.wolff.wtracker.model.WUser;
+import com.wolff.wtracker.tools.DateFormatTools;
 import com.wolff.wtracker.tools.Debug;
 
 import static android.location.LocationProvider.AVAILABLE;
@@ -26,7 +27,7 @@ public class LocationService implements LocationListener {
     private WUser mCurrentUser;
     private WCoord mLastCoord;
     //The minimum distance to change updates in meters
-    private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 5; // 10 meters
+    private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 20; // 20 meters
 
     //The minimum time beetwen updates in milliseconds
     private static final long MIN_TIME_BW_UPDATES = 0;//1000 * 60 * 1; // 1 minute
@@ -59,7 +60,6 @@ public class LocationService implements LocationListener {
         mCurrentUser = currentUser;
         mLastCoord = DataLab.get(mContext).getUserLastCoord(mCurrentUser);
         initLocationService();
-        Debug.Log("SERV", "LocationService created");
     }
 
 
@@ -159,11 +159,14 @@ public class LocationService implements LocationListener {
         DataLab dataLab = DataLab.get(mContext);
         WCoord coord = new WCoord(mLocation);
         boolean write = false;
+        DateFormatTools dft = new DateFormatTools();
         if(mLastCoord!=null){
             if(mLastCoord.get_coord_lon()!=coord.get_coord_lon()|
                     mLastCoord.get_coord_lat()!=coord.get_coord_lat()|
                     mLastCoord.get_altitude()!=coord.get_altitude()|
-                    mLastCoord.get_accuracy()!=coord.get_accuracy()){
+                    mLastCoord.get_accuracy()!=coord.get_accuracy()|
+                    !dft.dateToString(mLastCoord.get_date(),DateFormatTools.DATE_FORMAT_SHORT)
+                            .equals(dft.dateToString(coord.get_date(),DateFormatTools.DATE_FORMAT_SHORT))){
                 write=true;
             }
         }else {
@@ -176,8 +179,6 @@ public class LocationService implements LocationListener {
             if (l == 0) {
                 dataLab.last_coord_add(mCurrentUser, coord);
             }
-            Debug.Log("UPDATE", "COORDS: lat: " + mLocation.getLatitude() + "; lon: " + mLocation.getLongitude() + "; provider = " + mLocation.getProvider());
-            Debug.Log("=", "================================================================================");
             mLastCoord=coord;
         }
     }

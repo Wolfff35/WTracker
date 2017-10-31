@@ -3,17 +3,16 @@ package com.wolff.wtracker;
 import android.Manifest;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.design.widget.NavigationView;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
@@ -23,26 +22,29 @@ import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.TextView;
 
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.Polyline;
 import com.wolff.wtracker.fragments.Add_user_fragment;
 import com.wolff.wtracker.fragments.Google_map_fragment;
 import com.wolff.wtracker.fragments.Register_user_fragment;
 import com.wolff.wtracker.localdb.DataLab;
-import com.wolff.wtracker.online.AsyncExecute;
-import com.wolff.wtracker.model.WCoord;
 import com.wolff.wtracker.model.WUser;
-import com.wolff.wtracker.online.AsyncRequestUser;
 import com.wolff.wtracker.online.DbSchemaOnline;
 import com.wolff.wtracker.online.OnlineDataLab;
 import com.wolff.wtracker.tools.DateFormatTools;
 import com.wolff.wtracker.tools.Debug;
 import com.wolff.wtracker.tools.OtherTools;
 import com.wolff.wtracker.tools.PermissionTools;
+import com.wolff.wtracker.tools.UITools;
 
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.concurrent.ExecutionException;
+import java.util.Map;
+
+import static com.wolff.wtracker.tools.PermissionTools.MY_PERMISSION_REQUEST_ACCESS_FINE_LOCATION;
+import static com.wolff.wtracker.tools.PermissionTools.MY_PERMISSION_REQUEST_READ_PHONE_STATE;
 
 public class ActivityMain extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
@@ -50,19 +52,19 @@ public class ActivityMain extends AppCompatActivity
         Register_user_fragment.Register_user_fragment_listener,
         Add_user_fragment.Add_user_fragment_listener {
 
-    private Fragment mCurrentFragment;
+    private Google_map_fragment mGoogleMapFragment;
+    private Register_user_fragment mRegisterUserFragment;
+    private Add_user_fragment mAddUserFragment;
     private ArrayList<WUser> mUsers = new ArrayList<>();
     private WUser mCurrentUser;
     private int mCurrentUserIndex;//индекс пользователя в массиве юзеров
-    private boolean mPermissionDenied = false;
     private Date mCurrentDate = new Date();
-
-    public static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
-    private static final int WRITE_EXTERNAL_STORAGE_PERMISSION_REQUEST_CODE = 2;
-    private static final int READ_PHONE_STATE_PERMISSION_REQUEST_CODE = 3;
 
     private boolean mShowDatePicker = false;
     private Button btnDate;
+
+    private Polyline mUserWay;
+    private Map<WUser, Marker> mLastCoords;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +72,9 @@ public class ActivityMain extends AppCompatActivity
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        boolean hasPermissions = PermissionTools.enableMyLocation(this) && PermissionTools.enableReadPhoneState(this);
+
+        mGoogleMapFragment = Google_map_fragment.newInstance();
 
         btnDate = (Button) findViewById(R.id.btnDate);
         btnDate.setOnClickListener(btnDateListener);
@@ -78,34 +83,30 @@ public class ActivityMain extends AppCompatActivity
 
         final NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+        if (hasPermissions) {
+            DataLab dataLab = DataLab.get(getApplicationContext());
+            mUsers = dataLab.getWUserList();
+            mCurrentUser = dataLab.getCurrentUser(mUsers);
+            registerOrLoginUser();
 
-        DataLab dataLab = DataLab.get(getApplicationContext());
-        mUsers = dataLab.getWUserList();
-        mCurrentUser = dataLab.getCurrentUser(mUsers);
-        registerOrLoginUser();
-
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close) {
-            public void onDrawerOpened(View drawerView) {
-                super.onDrawerOpened(drawerView);
-                new OtherTools().createDrawerMenu(mUsers, navigationView.getMenu());
-            }
-        };
-        drawer.addDrawerListener(toggle);
-        toggle.syncState();
-
-        displayFragment();
+            DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+            ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                    this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close) {
+                public void onDrawerOpened(View drawerView) {
+                    super.onDrawerOpened(drawerView);
+                    new OtherTools().createDrawerMenu(mUsers, navigationView.getMenu());
+                }
+            };
+            drawer.addDrawerListener(toggle);
+            toggle.syncState();
+        } else {
+            Debug.Log("PERMISSIONS", "NO PERMISSION");
+        }
     }
 
     @Override
     protected void onPostResume() {
         super.onPostResume();
-        if (mPermissionDenied) {
-            // Permission was not granted, display error dialog.
-            showMissingPermissionError();
-            mPermissionDenied = false;
-        }
 
     }
 
@@ -131,11 +132,13 @@ public class ActivityMain extends AppCompatActivity
         int id = item.getItemId();
         switch (id) {
             case R.id.action_add_user: {
-                mCurrentFragment = Add_user_fragment.newInstance();
-                displayFragment();
+                mShowDatePicker = false;
+                setViewsVisibility();
+                mAddUserFragment = Add_user_fragment.newInstance();
+                new UITools().displayFragment(this, mAddUserFragment);
                 break;
             }
-            case R.id.action_uprate_map: {
+            case R.id.action_update_map: {
                 //mLastUserCoordinates = DataLab.get(getApplicationContext()).getLastCoords(mUsers);
                 //drawLastCoords();
                 break;
@@ -161,144 +164,142 @@ public class ActivityMain extends AppCompatActivity
             }
             */
             case R.id.action_create_online_tables: {
-                try {
-                    AsyncExecute ac = new AsyncExecute(getApplicationContext());
-                    boolean flag = ac.execute(DbSchemaOnline.CREATE_TABLE_USERS).get();
-                    Debug.Log("AsyncExecute", "flag users = " + flag);
-                    AsyncExecute ac2 = new AsyncExecute(getApplicationContext());
-                    boolean flag2 = ac2.execute(DbSchemaOnline.CREATE_TABLE_COORDS).get();
-                    Debug.Log("AsyncExecute", "flag coords = " + flag2);
-                } catch (InterruptedException e) {
-                    Debug.Log("AsyncExecute", "ERROR 1 " + e.getLocalizedMessage());
-                } catch (ExecutionException e) {
-                    Debug.Log("AsyncExecute", "ERROR 2 " + e.getLocalizedMessage());
-                }
+                new DbSchemaOnline().create_online_tables(getApplicationContext());
                 break;
             }
         }
         return super.onOptionsItemSelected(item);
     }
 
+
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         int id = item.getItemId();
-        Debug.Log("NAVIGATION", "id = " + id);
         if (id == 0) {
-            mCurrentFragment = Google_map_fragment.newInstance(null, null);
             mShowDatePicker = false;
+            drawLastCoords();
         } else {
             mCurrentDate = new Date();
             mShowDatePicker = true;
             mCurrentUserIndex = id;
-            mCurrentFragment = Google_map_fragment.newInstance(mUsers.get(mCurrentUserIndex - 1), mCurrentDate);
+            drawUserWay();
         }
         setViewsVisibility();
-        displayFragment();
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
 
-
-    private void showMissingPermissionError() {
-        PermissionTools.PermissionDeniedDialog
-                .newInstance(true).show(getSupportFragmentManager(), "dialog");
-    }
-
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
-                                           @NonNull int[] grantResults) {
-        if (requestCode != LOCATION_PERMISSION_REQUEST_CODE
-                | requestCode != WRITE_EXTERNAL_STORAGE_PERMISSION_REQUEST_CODE
-                | requestCode != READ_PHONE_STATE_PERMISSION_REQUEST_CODE) {
-            return;
-        }
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case MY_PERMISSION_REQUEST_ACCESS_FINE_LOCATION: {
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    //start audio recording or whatever you planned to do
+                } else if (grantResults[0] == PackageManager.PERMISSION_DENIED) {
+                    if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
+                        //Show an explanation to the user *asynchronously*
+                        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                        builder.setMessage("This permission is important to record audio.")
+                                .setTitle("Important permission required");
+                        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                ActivityCompat.requestPermissions(ActivityMain.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSION_REQUEST_ACCESS_FINE_LOCATION);
+                            }
+                        });
+                        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSION_REQUEST_ACCESS_FINE_LOCATION);
+                    } else {
+                        //Never ask again and handle your app without permission.
+                    }
+                }
+                break;
+            }
 
-        if (PermissionTools.isPermissionGranted(permissions, grantResults,
-                Manifest.permission.ACCESS_FINE_LOCATION)
-                && PermissionTools.isPermissionGranted(permissions, grantResults, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                && PermissionTools.isPermissionGranted(permissions, grantResults, Manifest.permission.READ_PHONE_STATE)
-                ) {
-            // Enable the my location layer if the permission has been granted.
-            mCurrentFragment = Google_map_fragment.newInstance(null, null);
-            displayFragment();
-            //enableMyLocation((AppCompatActivity) getActivity());
-            //drawLastCoords();
-        } else {
-            // Display the missing permission error dialog when the fragments resume.
-            mPermissionDenied = true;
-            Debug.Log("", "onRequestPermissionsResult");
+            case MY_PERMISSION_REQUEST_READ_PHONE_STATE: {
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    //start audio recording or whatever you planned to do
+                } else if (grantResults[0] == PackageManager.PERMISSION_DENIED) {
+                    if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_PHONE_STATE)) {
+                        //Show an explanation to the user *asynchronously*
+                        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                        builder.setMessage("This permission is important to record audio.")
+                                .setTitle("Important permission required");
+                        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                ActivityCompat.requestPermissions(ActivityMain.this, new String[]{Manifest.permission.READ_PHONE_STATE}, MY_PERMISSION_REQUEST_READ_PHONE_STATE);
+                            }
+                        });
+                        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_PHONE_STATE}, MY_PERMISSION_REQUEST_READ_PHONE_STATE);
+                    } else {
+                        //Never ask again and handle your app without permission.
+                    }
+                }
+                break;
+            }
+
+            // other 'case' lines to check for other
+            // permissions this app might request
         }
     }
 
     private void registerOrLoginUser() {
-        mCurrentFragment = Register_user_fragment.newInstance();
-        try {
-            WUser onlineUser = null;
-            if (mCurrentUser != null) {
-                onlineUser = new AsyncRequestUser(getApplicationContext(), mCurrentUser).execute().get();
-            }
-            if (mCurrentUser != null && onlineUser != null) {
-                if (mCurrentUser.equals(onlineUser)) {
-                    Debug.Log("registerOrLogin", "есть и на сервере и локально, ВСЕ СОВПАДАЕТ");
-                    mCurrentFragment = Google_map_fragment.newInstance(null, null);
-                    if (!OtherTools.isServiceRunning(getApplicationContext(), WTrackerServise.class)
-                            && mCurrentUser != null) {
-                        Intent intent = new Intent(getApplicationContext(), WTrackerServise.class);
-                        startService(intent);
-                        Debug.Log("RUN", "Servise!");
-                    }
-                } else {
-                    Debug.Log("registerOrLogin", "есть и на сервере и локально,  но что-то НЕ СОВПАДАЕТ");
+        boolean showRegisterForm = false;
+        WUser onlineUser = null;
+        if (mCurrentUser != null) {
+            onlineUser = OnlineDataLab.get(getApplicationContext()).getOnlineUser(mCurrentUser);
+        }
+        if (mCurrentUser != null && onlineUser != null) {
+            if (mCurrentUser.equals(onlineUser)) {
+                new UITools().displayFragment(this, mGoogleMapFragment);
+                if (!OtherTools.isServiceRunning(getApplicationContext(), WTrackerServise.class)
+                        && mCurrentUser != null) {
+                    Intent intent = new Intent(getApplicationContext(), WTrackerServise.class);
+                    startService(intent);
                 }
-            } else if (mCurrentUser == null && onlineUser != null) {
-                //есть на сервере, нет локально
-                Debug.Log("registerOrLogin", "есть на сервере, нет локально");
-            } else if (mCurrentUser != null && onlineUser == null) {
-                //есть локально, нет онлайн
-                Debug.Log("registerOrLogin", "есть локально, нет онлайн");
-
-            } else if (mCurrentUser == null && onlineUser == null) {
-                //есть локально, нет онлайн
-                Debug.Log("registerOrLogin", "нет локально, нет онлайн");
-
+            } else {
+                showRegisterForm = true;
             }
-        } catch (InterruptedException e) {
-            Debug.Log("GET USER", "ERROR 1 " + e.getLocalizedMessage());
-        } catch (ExecutionException e) {
-            Debug.Log("GET USER", "ERROR 2 " + e.getLocalizedMessage());
+        } else if (mCurrentUser == null && onlineUser != null) {
+            //есть на сервере, нет локально
+            showRegisterForm = true;
+        } else if (mCurrentUser != null && onlineUser == null) {
+            //есть локально, нет онлайн
+            showRegisterForm = true;
+
+        } else if (mCurrentUser == null && onlineUser == null) {
+            //есть локально, нет онлайн
+            showRegisterForm = true;
+
+        }
+        if (showRegisterForm) {
+            mRegisterUserFragment = Register_user_fragment.newInstance();
+            new UITools().displayFragment(this, mRegisterUserFragment);
         }
     }
 
-    private void displayFragment() {
-        FragmentTransaction fragmentTransaction;
-        FragmentManager fm = getSupportFragmentManager();
-
-        fragmentTransaction = fm.beginTransaction();
-        fragmentTransaction.replace(R.id.item_container, mCurrentFragment);
-        fragmentTransaction.commit();
-    }
 
     @Override
     public void onClickButtonRegisterLoginUser(String buttonType, WUser user) {
-        Debug.Log("CLICK", " button " + buttonType);
-        TextView tvInfoMessage = (TextView)mCurrentFragment.getView()
+        TextView tvInfoMessage = (TextView) mRegisterUserFragment.getView()
                 .findViewById(R.id.tvInfoMessage);
         if (buttonType.equals("REGISTER")) {
             if (new OtherTools().registerNewUser(getApplicationContext(), user)) {
                 tvInfoMessage.setText("Регистрация успешна!");
-                Debug.Log("REG", "OK");
-                mCurrentFragment = Google_map_fragment.newInstance(null, null);
-                displayFragment();
+                mUsers = DataLab.get(getApplicationContext()).getWUserList();
+                mCurrentUser = DataLab.get(getApplicationContext()).getCurrentUser(mUsers);
+
+                new UITools().displayFragment(this, mGoogleMapFragment);
             } else {
-                Debug.Log("REG", "ERROR");
                 tvInfoMessage.setText("Ошибка регистрации!");
             }
         } else if (buttonType.equals("LOGIN")) {
             if (new OtherTools().loginUser(getApplicationContext(), user)) {
-                mCurrentFragment = Google_map_fragment.newInstance(null, null);
-                displayFragment();
+                mUsers = DataLab.get(getApplicationContext()).getWUserList();
+                mCurrentUser = DataLab.get(getApplicationContext()).getCurrentUser(mUsers);
+
+                new UITools().displayFragment(this, mGoogleMapFragment);
 
             }
 
@@ -307,16 +308,15 @@ public class ActivityMain extends AppCompatActivity
 
     @Override
     public void onClickButtonAddUser(WUser user) {
+        TextView tvInfoMessage = (TextView) mAddUserFragment.getView().findViewById(R.id.tvInfoMessage);
         if (new OtherTools().addUser(getApplicationContext(), user)) {
-            ((TextView) mCurrentFragment.getView().findViewById(R.id.tvInfoMessage))
-                    .setText("Пользователь добавлен успешно!");
-            Debug.Log("REG", "OK");
-            mCurrentFragment = Google_map_fragment.newInstance(null,null);
-            displayFragment();
+            tvInfoMessage.setText("Пользователь добавлен успешно!");
+            mUsers = DataLab.get(getApplicationContext()).getWUserList();
+            mCurrentUser = DataLab.get(getApplicationContext()).getCurrentUser(mUsers);
+
+            new UITools().displayFragment(this, mGoogleMapFragment);
         } else {
-            Debug.Log("REG", "ERROR");
-            ((TextView) mCurrentFragment.getView().findViewById(R.id.tvInfoMessage))
-                    .setText("Ошибка добавления!");
+            tvInfoMessage.setText("Ошибка добавления!");
         }
 
     }
@@ -349,15 +349,31 @@ public class ActivityMain extends AppCompatActivity
     DatePickerDialog.OnDateSetListener onDateSetListener = new DatePickerDialog.OnDateSetListener() {
         @Override
         public void onDateSet(DatePicker datePicker, int i, int i1, int i2) {
-            Calendar calendar = Calendar.getInstance();
-            calendar.set(Calendar.YEAR, i);
-            calendar.set(Calendar.MONTH, i1);
-            calendar.set(Calendar.DATE, i2);
-            mCurrentDate = calendar.getTime();
-            Debug.Log("CHOOSE DATE", "" + mCurrentDate.toString());
-            mCurrentFragment = Google_map_fragment.newInstance(mUsers.get(mCurrentUserIndex - 1), mCurrentDate);
+            mCurrentDate = new DateFormatTools().getDate(i, i1, i2);
             setViewsVisibility();
-            displayFragment();
+            drawUserWay();
         }
     };
+
+    private void drawUserWay() {
+        UITools uiTools = new UITools();
+        uiTools.displayFragment(ActivityMain.this, mGoogleMapFragment);
+        if (mUserWay != null) mUserWay.remove();
+        mUserWay = uiTools.drawUserWay(getApplicationContext(), mGoogleMapFragment.mMap, mUsers.get(mCurrentUserIndex - 1), mCurrentDate);
+
+    }
+
+    private void drawLastCoords() {
+        UITools uiTools = new UITools();
+        uiTools.displayFragment(ActivityMain.this, mGoogleMapFragment);
+        if (mLastCoords != null) {
+            if (mLastCoords.size() > 0) {
+                for (Map.Entry<WUser, Marker> entry : mLastCoords.entrySet()) {
+                    entry.getValue().remove();
+                }
+            }
+        }
+        mLastCoords = uiTools.drawLastCoords(mGoogleMapFragment.mMap, DataLab.get(getApplicationContext()).getLastCoords(mUsers));
+
+    }
 }

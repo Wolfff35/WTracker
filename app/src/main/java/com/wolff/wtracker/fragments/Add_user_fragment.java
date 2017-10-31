@@ -91,7 +91,7 @@ public class Add_user_fragment extends Fragment {
 
     private WUser getUserFromRegForm() {
         WUser newUser = new WUser();
-        newUser.set_currentUser(true);
+        newUser.set_currentUser(false);
         newUser.set_phone(edUserPhone.getText().toString());
         newUser.set_name(edUserName.getText().toString());
         //newUser.set_avatar_path();

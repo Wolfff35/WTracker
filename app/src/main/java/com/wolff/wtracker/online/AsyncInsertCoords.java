@@ -27,7 +27,6 @@ public final class AsyncInsertCoords extends AsyncTask<String, Void, Boolean> {
     private ArrayList<WCoord> mCoords;
 
     private static final String REMOTE_TABLE = "[tessst_gps].[dbo].[t_coords]";
-    //private static final String SQL = "INSERT into "+REMOTE_TABLE+" (ID_USER,IMEI_PHONE) values(?,?)";
     private static final String SQL = "INSERT into " + REMOTE_TABLE + " (" + DbSchema.Table_Users.Cols.ID_USER +
             "," + DbSchema.Table_Users.Cols.IMEI_PHONE +
             "," + DbSchema.Table_Coords.Cols.DATE +
@@ -49,7 +48,6 @@ public final class AsyncInsertCoords extends AsyncTask<String, Void, Boolean> {
 
     @Override
     protected Boolean doInBackground(String... proc_params) {
-        Debug.Log("AsyncInsertCoords","BEGIN");
         OnlineDataLab onlineDataLab = OnlineDataLab.get(mContext);
         Connection con = onlineDataLab.getOnlineConnection(MSSQL_DB, MSSQL_LOGIN, MSSQL_PASS);
         if (con != null) {
@@ -57,7 +55,6 @@ public final class AsyncInsertCoords extends AsyncTask<String, Void, Boolean> {
             try {
                 prepared = con.prepareStatement(SQL);
                 for (WCoord coord : mCoords) {
-                    Debug.Log("ONLINE",""+coord.toString());
                     prepared.setString(1, mCurrentUser.get_id_user());
                     prepared.setString(2, mCurrentUser.get_imei_phone());
                     prepared.setTimestamp(3, new java.sql.Timestamp(coord.get_date().getTime()));
@@ -71,7 +68,6 @@ public final class AsyncInsertCoords extends AsyncTask<String, Void, Boolean> {
                     prepared.addBatch();
                 }
                 prepared.executeBatch();
-                Debug.Log("COORDS","send on server - "+mCoords.size());
                 return true;
             } catch (SQLException e) {
                 Debug.Log("AsyncInsertCoords", "ERROR 4 " + e.getLocalizedMessage());
@@ -92,7 +88,6 @@ public final class AsyncInsertCoords extends AsyncTask<String, Void, Boolean> {
     @Override
     protected void onPostExecute(Boolean aBoolean) {
         super.onPostExecute(aBoolean);
-        Debug.Log("FINISH"," send coords = "+aBoolean);
         if (aBoolean){
 
             for (WCoord coord:mCoords){
@@ -101,4 +96,3 @@ public final class AsyncInsertCoords extends AsyncTask<String, Void, Boolean> {
         }
     }
 }
-    //https://habrahabr.ru/post/206790/

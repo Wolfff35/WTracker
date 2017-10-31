@@ -107,16 +107,28 @@ public class WUser {
         if (!(o instanceof WUser)) return false;
 
         WUser wUser = (WUser) o;
-
-        if (!get_id_user().equals(wUser.get_id_user())) return false;
-        if (!get_phone().equals(wUser.get_phone())) return false;
-        //if (!get_imei_phone().equals(wUser.get_imei_phone())) return false;
-        return get_imei_phone().equals(wUser.get_imei_phone());
-        //if (!get_pin_for_access().equals(wUser.get_pin_for_access())) return false;
-        //return get_password().equals(wUser.get_password());
-
+        if(wUser!=null) {
+            if (!get_id_user().equals(wUser.get_id_user())) return false;
+            if (!get_phone().equals(wUser.get_phone())) return false;
+            return get_imei_phone().equals(wUser.get_imei_phone());
+        }else {
+            return false;
+        }
     }
+  /*  public boolean equalsAdd(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof WUser)) return false;
 
+        WUser wUser = (WUser) o;
+        if(wUser!=null) {
+            if (!get_id_user().equals(wUser.get_id_user())) return false;
+            if (!get_pin_for_access().equals(wUser.get_pin_for_access())) return false;
+            return  (!get_phone().equals(wUser.get_phone()));
+        }else {
+            return false;
+        }
+    }
+*/
     @Override
     public int hashCode() {
         int result = get_id_user().hashCode();
