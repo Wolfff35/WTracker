@@ -89,6 +89,7 @@ public class OnlineDataLab {
     }
 
     public ArrayList<WCoord> getOnlineUsersCoordinates(WUser currentUser,Date currentDate) {
+        Debug.start("getOnlineUsersCoordinates");
         String REMOTE_TABLE = "[tessst_gps].[dbo].[t_coords]";
         DateFormatTools dft = new DateFormatTools();
         String SQL = "SELECT * FROM " + REMOTE_TABLE + " WHERE " + DbSchema.Table_Users.Cols.ID_USER + " = " + currentUser.get_id_user()+
@@ -118,6 +119,8 @@ public class OnlineDataLab {
                     return o1.get_date().compareTo(o2.get_date());
                 }
             });
+            Debug.Log("Coords","Count = "+coordList.size());
+            Debug.stop();
             return coordList;
          } catch (InterruptedException e) {
             Debug.Log(LOG_TAG, "ERROR 1 " + e.getLocalizedMessage());
