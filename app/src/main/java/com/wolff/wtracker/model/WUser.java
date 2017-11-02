@@ -15,7 +15,7 @@ public class WUser {
     private boolean _currentUser;
 
 
-    public WUser(){
+    public WUser() {
 
     }
 
@@ -52,9 +52,9 @@ public class WUser {
     }
 
     public String get_name() {
-        if(_name!=null) {
+        if (_name != null) {
             return _name;
-        }else {
+        } else {
             return "";
         }
     }
@@ -107,28 +107,15 @@ public class WUser {
         if (!(o instanceof WUser)) return false;
 
         WUser wUser = (WUser) o;
-        if(wUser!=null) {
+        if (wUser != null) {
             if (!get_id_user().equals(wUser.get_id_user())) return false;
             if (!get_phone().equals(wUser.get_phone())) return false;
             return get_imei_phone().equals(wUser.get_imei_phone());
-        }else {
+        } else {
             return false;
         }
     }
-  /*  public boolean equalsAdd(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof WUser)) return false;
 
-        WUser wUser = (WUser) o;
-        if(wUser!=null) {
-            if (!get_id_user().equals(wUser.get_id_user())) return false;
-            if (!get_pin_for_access().equals(wUser.get_pin_for_access())) return false;
-            return  (!get_phone().equals(wUser.get_phone()));
-        }else {
-            return false;
-        }
-    }
-*/
     @Override
     public int hashCode() {
         int result = get_id_user().hashCode();

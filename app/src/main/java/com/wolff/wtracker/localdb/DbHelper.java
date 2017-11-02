@@ -21,7 +21,6 @@ class DbHelper extends SQLiteOpenHelper {
             db.execSQL(DbSchema.CREATE_TABLE_USERS);
             db.execSQL(DbSchema.CREATE_TABLE_COORDS);
             db.execSQL(DbSchema.CREATE_TABLE_LAST_COORDS);
-            Log.e("CREATE TABLES","CREATED!");
         }
 
         @Override
@@ -32,6 +31,5 @@ class DbHelper extends SQLiteOpenHelper {
             db.execSQL(DbSchema.CREATE_TABLE_USERS);
             db.execSQL(DbSchema.CREATE_TABLE_COORDS);
             db.execSQL(DbSchema.CREATE_TABLE_LAST_COORDS);
-            Log.e("UPDATE TABLES","CREATED!");
         }
 }

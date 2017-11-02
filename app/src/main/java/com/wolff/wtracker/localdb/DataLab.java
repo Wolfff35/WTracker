@@ -55,9 +55,9 @@ public class DataLab {
         return new DbCursorWrapper(cursor);
     }
 
-    public int last_coord_update(WUser user,WCoord coord) {
+    public int last_coord_update(WUser user, WCoord coord) {
         if (coord != null) {
-            ContentValues values = getContentValues_WCoords(user,coord);
+            ContentValues values = getContentValues_WCoords(user, coord);
             String table = DbSchema.Table_LastCoords.TABLE_NAME;
             int row = mDatabase.update(
                     table,
@@ -65,47 +65,46 @@ public class DataLab {
                     DbSchema.Table_Users.Cols.ID_USER + " = ?",
                     new String[]{String.valueOf(user.get_id_user())}
             );
-            Debug.Log("LAST COORD", "UPDATED");
             return row;
         }
         return 0;
     }
 
-    public void last_coord_add(WUser user,WCoord coord) {
-        ContentValues values = getContentValues_WCoords(user,coord);
+    public void last_coord_add(WUser user, WCoord coord) {
+        ContentValues values = getContentValues_WCoords(user, coord);
         mDatabase.insert(DbSchema.Table_LastCoords.TABLE_NAME, null, values);
-        Debug.Log("LAST COORD", "ADDED");
     }
 
-    public Map<WUser,WCoord> getLastCoords(ArrayList<WUser> users) {
+    public Map<WUser, WCoord> getLastCoords(ArrayList<WUser> users) {
         DbCursorWrapper cursorWrapper = queryLastCoords();
-        Map<WUser,WCoord> coords = new HashMap<>();
+        Map<WUser, WCoord> coords = new HashMap<>();
         cursorWrapper.moveToFirst();
         while (!cursorWrapper.isAfterLast()) {
-            Map coord = cursorWrapper.getWUserCoord(mContext,users);
+            Map coord = cursorWrapper.getWUserCoord(mContext, users);
             coords.putAll(coord);
             cursorWrapper.moveToNext();
         }
         cursorWrapper.close();
         return coords;
     }
-    public WCoord getUserLastCoord(WUser user){
+
+    public WCoord getUserLastCoord(WUser user) {
         ArrayList<WUser> users = getWUserList();
-        Map<WUser,WCoord> lastCoord = getLastCoords(users);
-        WCoord last=null;
-        for (Map.Entry<WUser,WCoord>entry:lastCoord.entrySet()) {
-            if(entry.getKey().get_id_user().equalsIgnoreCase(user.get_id_user())){
+        Map<WUser, WCoord> lastCoord = getLastCoords(users);
+        WCoord last = null;
+        for (Map.Entry<WUser, WCoord> entry : lastCoord.entrySet()) {
+            if (entry.getKey().get_id_user().equalsIgnoreCase(user.get_id_user())) {
                 last = entry.getValue();
             }
         }
-        if(last!=null) {
-            Debug.Log("getUserLastCoord", "USER = " + user.get_id_user() + "; coord = " + last.toString());
-        }else {
+        if (last != null) {
+        } else {
             Debug.Log("getUserLastCoord", "USER = " + user.get_id_user() + " - NO LAST COORDINATES!!");
         }
         return last;
 
     }
+
     //--------------------------------------------------------------------------------------------------
     private DbCursorWrapper queryWCoords() {
         String selection = null;
@@ -124,7 +123,7 @@ public class DataLab {
         return new DbCursorWrapper(cursor);
     }
 
-    private static ContentValues getContentValues_WCoords(WUser user,WCoord coord) {
+    private static ContentValues getContentValues_WCoords(WUser user, WCoord coord) {
         ContentValues values = new ContentValues();
         DateFormatTools dft = new DateFormatTools();
         values.put(DbSchema.Table_Coords.Cols.DATE, dft.dateToString(coord.get_date(), DateFormatTools.DATE_FORMAT_SAVE));
@@ -137,14 +136,12 @@ public class DataLab {
         values.put(DbSchema.Table_Coords.Cols.COORD_ACCURACY, coord.get_accuracy());
         values.put(DbSchema.Table_Coords.Cols.COORD_ALTITUDE, coord.get_altitude());
         values.put(DbSchema.Table_Coords.Cols.COORD_BEARING, coord.get_bearing());
-        //values.put(DbSchema.Table_Coords.Cols.ID, coord.get_id());
         return values;
     }
 
-    public void coord_add(WUser user,WCoord coord) {
-        ContentValues values = getContentValues_WCoords(user,coord);
+    public void coord_add(WUser user, WCoord coord) {
+        ContentValues values = getContentValues_WCoords(user, coord);
         mDatabase.insert(DbSchema.Table_Coords.TABLE_NAME, null, values);
-        Debug.Log("COORD", "ADDED");
     }
 
     public void coord_delete(WCoord coord) {
@@ -153,8 +150,8 @@ public class DataLab {
                 DbSchema.Table_Coords.Cols.ID + " =?",
                 new String[]{String.valueOf(coord.get_id())}
         );
-        Debug.Log("COORD", "DELETED");
     }
+
     public ArrayList<WCoord> getLocalCoords() {
         DbCursorWrapper cursorWrapper = queryWCoords();
         ArrayList<WCoord> coordList = new ArrayList<>();
@@ -167,6 +164,7 @@ public class DataLab {
         cursorWrapper.close();
         return coordList;
     }
+
     //--------------------------------------------------------------------------------------------------
     private DbCursorWrapper queryWUsers() {
         String selection = null;
@@ -185,29 +183,29 @@ public class DataLab {
         return new DbCursorWrapper(cursor);
     }
 
-       public WUser queryWUserById(String id){
-           String selection = DbSchema.Table_Users.Cols.ID_USER + " = ?";
-           String[] selectionArgs = new String[]{id};
+    public WUser queryWUserById(String id) {
+        String selection = DbSchema.Table_Users.Cols.ID_USER + " = ?";
+        String[] selectionArgs = new String[]{id};
 
-           String[] columns = null;
-           String groupBy = null;
-           String having = null;
-           String orderBy = DbSchema.Table_Users.Cols.PHONE+" DESC";
-           Cursor cursor = mDatabase.query(DbSchema.Table_Users.TABLE_NAME,
-                   columns,
-                   selection,
-                   selectionArgs,
-                   groupBy,
-                   having,
-                   orderBy);
-           DbCursorWrapper cursorWrapper = new DbCursorWrapper(cursor);
-           WUser user = null;
-           if(cursorWrapper.moveToFirst()) {
-               user = cursorWrapper.getWUser();
-           }
-           cursorWrapper.close();
-            return user;
-       }
+        String[] columns = null;
+        String groupBy = null;
+        String having = null;
+        String orderBy = DbSchema.Table_Users.Cols.PHONE + " DESC";
+        Cursor cursor = mDatabase.query(DbSchema.Table_Users.TABLE_NAME,
+                columns,
+                selection,
+                selectionArgs,
+                groupBy,
+                having,
+                orderBy);
+        DbCursorWrapper cursorWrapper = new DbCursorWrapper(cursor);
+        WUser user = null;
+        if (cursorWrapper.moveToFirst()) {
+            user = cursorWrapper.getWUser();
+        }
+        cursorWrapper.close();
+        return user;
+    }
 
     private static ContentValues getContentValues_WUsers(WUser user) {
         ContentValues values = new ContentValues();
@@ -244,9 +242,10 @@ public class DataLab {
         }
         return null;
     }
-    public WUser getCurrentUser(ArrayList<WUser> userList){
-        for(WUser user:userList){
-            if(user.is_currentUser()){
+
+    public WUser getCurrentUser(ArrayList<WUser> userList) {
+        for (WUser user : userList) {
+            if (user.is_currentUser()) {
                 return user;
             }
         }
@@ -263,10 +262,6 @@ public class DataLab {
             cursorWrapper.moveToNext();
         }
         cursorWrapper.close();
-        for(WUser user:userList){
-            Debug.Log("USER LIST","user = "+user.toString());
-        }
-
         return userList;
     }
 

@@ -47,10 +47,8 @@ public class DbSchemaOnline {
         try {
             AsyncExecute ac = new AsyncExecute(context);
             boolean flag = ac.execute(DbSchemaOnline.CREATE_TABLE_USERS).get();
-            Debug.Log("AsyncExecute", "flag users = " + flag);
             AsyncExecute ac2 = new AsyncExecute(context);
             boolean flag2 = ac2.execute(DbSchemaOnline.CREATE_TABLE_COORDS).get();
-            Debug.Log("AsyncExecute", "flag coords = " + flag2);
         } catch (InterruptedException e) {
             Debug.Log("AsyncExecute", "ERROR 1 " + e.getLocalizedMessage());
         } catch (ExecutionException e) {
@@ -64,4 +62,20 @@ if not exists (select * from sysobjects where name='cars' and xtype='U')
         Name varchar(64) not null
     )
 go
+ */
+
+/*
+SELECT t_coord._id_user,t_coord._date,t_coord.max_time
+FROM
+(SELECT _id_user,_date,MAX(_time) AS max_time
+ FROM [tessst_gps].[dbo].[t_coords]
+ GROUP BY _id_user,_date) t_coord,
+
+
+ (SELECT _id_user,MAX(_date) AS max_date
+ FROM [tessst_gps].[dbo].[t_coords]
+ GROUP BY _id_user) t_us
+ WHERE t_us._id_user = t_coord._id_user AND t_us.max_date = t_coord._date
+
+
  */

@@ -36,7 +36,7 @@ public class OtherTools {
         if(!PermissionTools.enableReadPhoneState((AppCompatActivity) context)){
             return null;
         }
-        TelephonyManager manager = (TelephonyManager) context.getSystemService(context.TELEPHONY_SERVICE);
+        TelephonyManager manager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
         return manager.getDeviceId();
     }
     public boolean addUser(Context context, WUser newUser) {
@@ -104,11 +104,8 @@ public class OtherTools {
                 Debug.Log(LOG_TAG, "Нет такого пользователя!");
                 return false;
             } else {
-                if (existUser.get_imei_phone().equals(user.get_imei_phone()) &&
-                        existUser.get_password().equals(user.get_password())) {
-                    return true;
-                }
-                return false;
+                return existUser.get_imei_phone().equals(user.get_imei_phone()) &&
+                        existUser.get_password().equals(user.get_password());
             }
      }
 
