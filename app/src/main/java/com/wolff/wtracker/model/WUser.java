@@ -121,8 +121,8 @@ public class WUser {
         int result = get_id_user().hashCode();
         result = 31 * result + get_phone().hashCode();
         result = 31 * result + get_imei_phone().hashCode();
-        result = 31 * result + get_pin_for_access().hashCode();
-        result = 31 * result + get_password().hashCode();
+//        result = 31 * result + get_pin_for_access().hashCode();
+//        result = 31 * result + get_password().hashCode();
         return result;
     }
 }

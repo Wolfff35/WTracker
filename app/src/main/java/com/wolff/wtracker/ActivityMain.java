@@ -1,18 +1,14 @@
 package com.wolff.wtracker;
 
-import android.Manifest;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
@@ -27,9 +23,10 @@ import com.google.android.gms.maps.model.Polyline;
 import com.wolff.wtracker.fragments.Add_user_fragment;
 import com.wolff.wtracker.fragments.Google_map_fragment;
 import com.wolff.wtracker.fragments.Register_user_fragment;
+import com.wolff.wtracker.fragments.Settings_fragment;
 import com.wolff.wtracker.localdb.DataLab;
+import com.wolff.wtracker.model.WCoord;
 import com.wolff.wtracker.model.WUser;
-import com.wolff.wtracker.online.DbSchemaOnline;
 import com.wolff.wtracker.online.OnlineDataLab;
 import com.wolff.wtracker.tools.DateFormatTools;
 import com.wolff.wtracker.tools.Debug;
@@ -42,9 +39,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
-
-import static com.wolff.wtracker.tools.PermissionTools.MY_PERMISSION_REQUEST_ACCESS_FINE_LOCATION;
-import static com.wolff.wtracker.tools.PermissionTools.MY_PERMISSION_REQUEST_READ_PHONE_STATE;
 
 public class ActivityMain extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
@@ -65,6 +59,7 @@ public class ActivityMain extends AppCompatActivity
 
     private Polyline mUserWay;
     private Map<WUser, Marker> mLastCoords;
+    private ArrayList<Marker> mUserCheckPoints;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,7 +67,9 @@ public class ActivityMain extends AppCompatActivity
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        boolean hasPermissions = PermissionTools.enableMyLocation(this) && PermissionTools.enableReadPhoneState(this);
+        boolean hasPermissions = PermissionTools.enableMyLocation(this)
+                && PermissionTools.enableReadPhoneState(this)
+                && PermissionTools.enableWriteExternalStorage(this);
 
         mGoogleMapFragment = Google_map_fragment.newInstance();
 
@@ -138,33 +135,11 @@ public class ActivityMain extends AppCompatActivity
                 new UITools().displayFragment(this, mAddUserFragment);
                 break;
             }
-            case R.id.action_update_map: {
-                //mLastUserCoordinates = DataLab.get(getApplicationContext()).getLastCoords(mUsers);
-                //drawLastCoords();
-                break;
-            }
-     /*       case R.id.action_stop_service: {
-                Intent intent = new Intent(getApplicationContext(), WTrackerServise.class);
-                stopService(intent);
-                Debug.Log("STOP", "Servise!");
-                break;
-            }
-            case R.id.action_start_service: {
-                Intent intent = new Intent(getApplicationContext(), WTrackerServise.class);
-                startService(intent);
-                Debug.Log("STOP", "Servise!");
-                break;
-            }
-            case R.id.action_write_coords_to_server: {
-
-                OnlineDataLab onlineDataLab = OnlineDataLab.get(getApplicationContext());
-                ArrayList<WCoord> coords = DataLab.get(getApplicationContext()).getLocalCoords();
-                onlineDataLab.writeCoordsToServer(mCurrentUser, coords);
-                break;
-            }
-            */
-            case R.id.action_create_online_tables: {
-                new DbSchemaOnline().create_online_tables(getApplicationContext());
+            case R.id.action_settings: {
+                mShowDatePicker = false;
+                setViewsVisibility();
+                Settings_fragment fs = Settings_fragment.newInstance();
+                new UITools().displayFragment(this, fs);
                 break;
             }
         }
@@ -194,54 +169,7 @@ public class ActivityMain extends AppCompatActivity
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            String permissions[], int[] grantResults) {
-        switch (requestCode) {
-            case MY_PERMISSION_REQUEST_ACCESS_FINE_LOCATION: {
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    //start audio recording or whatever you planned to do
-                } else if (grantResults[0] == PackageManager.PERMISSION_DENIED) {
-                    if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
-                        //Show an explanation to the user *asynchronously*
-                        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                        builder.setMessage("This permission is important to record audio.")
-                                .setTitle("Important permission required");
-                        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                ActivityCompat.requestPermissions(ActivityMain.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSION_REQUEST_ACCESS_FINE_LOCATION);
-                            }
-                        });
-                        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSION_REQUEST_ACCESS_FINE_LOCATION);
-                    } else {
-                        //Never ask again and handle your app without permission.
-                    }
-                }
-                break;
-            }
-
-            case MY_PERMISSION_REQUEST_READ_PHONE_STATE: {
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    //start audio recording or whatever you planned to do
-                } else if (grantResults[0] == PackageManager.PERMISSION_DENIED) {
-                    if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_PHONE_STATE)) {
-                        //Show an explanation to the user *asynchronously*
-                        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                        builder.setMessage("This permission is important to record audio.")
-                                .setTitle("Important permission required");
-                        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                ActivityCompat.requestPermissions(ActivityMain.this, new String[]{Manifest.permission.READ_PHONE_STATE}, MY_PERMISSION_REQUEST_READ_PHONE_STATE);
-                            }
-                        });
-                        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_PHONE_STATE}, MY_PERMISSION_REQUEST_READ_PHONE_STATE);
-                    } else {
-                        //Never ask again and handle your app without permission.
-                    }
-                }
-                break;
-            }
-
-            // other 'case' lines to check for other
-            // permissions this app might request
-        }
+        PermissionTools.onRequestPermissionResult(this, requestCode, permissions, grantResults);
     }
 
     private void registerOrLoginUser() {
@@ -356,24 +284,38 @@ public class ActivityMain extends AppCompatActivity
     };
 
     private void drawUserWay() {
+        clearMap();
         UITools uiTools = new UITools();
         uiTools.displayFragment(ActivityMain.this, mGoogleMapFragment);
-        if (mUserWay != null) mUserWay.remove();
-        mUserWay = uiTools.drawUserWay(getApplicationContext(), mGoogleMapFragment.mMap, mUsers.get(mCurrentUserIndex - 1), mCurrentDate);
-
+        WUser user = mUsers.get(mCurrentUserIndex - 1);
+        ArrayList<WCoord> userCoords = OnlineDataLab.get(getApplicationContext()).getOnlineUsersCoordinates(user, mCurrentDate);
+        ArrayList<WCoord> userCoords_rendered = uiTools.renderCoords(userCoords);
+        mUserWay = uiTools.drawUserWay(getApplicationContext(), mGoogleMapFragment.mMap, userCoords_rendered);
+        mUserCheckPoints = uiTools.drawUserCheckPoints(mGoogleMapFragment.mMap,user,userCoords_rendered);
     }
 
     private void drawLastCoords() {
+        clearMap();
         UITools uiTools = new UITools();
         uiTools.displayFragment(ActivityMain.this, mGoogleMapFragment);
+        mLastCoords = uiTools.drawAllUserLastCoords(mGoogleMapFragment.mMap, OnlineDataLab.get(getApplicationContext()).getOnlineLastCoords(mUsers));
+
+    }
+    private void clearMap(){
+        if (mUserWay != null) mUserWay.remove();
+        if(mUserCheckPoints!=null){
+            for(int i=0;i<mUserCheckPoints.size();i++){
+                mUserCheckPoints.get(i).remove();
+            }
+        }
         if (mLastCoords != null) {
             if (mLastCoords.size() > 0) {
                 for (Map.Entry<WUser, Marker> entry : mLastCoords.entrySet()) {
+                    Debug.Log("clearMap",""+entry.getValue());
                     entry.getValue().remove();
                 }
             }
         }
-        mLastCoords = uiTools.drawLastCoords(mGoogleMapFragment.mMap, DataLab.get(getApplicationContext()).getLastCoords(mUsers));
 
     }
 }

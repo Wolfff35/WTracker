@@ -45,7 +45,8 @@ public class OtherTools {
                 WUser localUser = DataLab.get(context).getUserById(onlineUser.get_id_user(),DataLab.get(context).getWUserList());
                 if(localUser==null) {
                     if (onlineUser.get_id_user().equals(newUser.get_id_user()) &&
-                            onlineUser.get_pin_for_access().equals(newUser.get_pin_for_access())) {
+                            onlineUser.get_pin_for_access().equals(newUser.get_pin_for_access())
+                            &&onlineUser.get_imei_phone().equals(newUser.get_imei_phone())) {
                         DataLab.get(context).user_add(newUser);
                         return true;
                     } else {

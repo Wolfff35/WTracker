@@ -23,8 +23,11 @@ public class Debug {
 
     public static void stop() {
         Date endDate = new Date();
-        Log.e("DEBUG", "END " + tagg + " " + new DateFormatTools().dateToString(endDate, DateFormatTools.DATE_FORMAT_VID_FULL) + "; time - " + ((endDate.getTime() - startTime.getTime())) + " m/sec");
-
+        if(startTime!=null) {
+            Log.e("DEBUG", "END " + tagg + " " + new DateFormatTools().dateToString(endDate, DateFormatTools.DATE_FORMAT_VID_FULL) + "; time - " + ((endDate.getTime() - startTime.getTime())) + " m/sec");
+        }else {
+            Log.e("DEBUG", "END " + tagg + " " + new DateFormatTools().dateToString(endDate, DateFormatTools.DATE_FORMAT_VID_FULL));
+        }
     }
 
     public static void Log(String tag, String msg) {

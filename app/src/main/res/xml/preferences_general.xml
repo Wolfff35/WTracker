@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.preference.PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <android.support.v7.preference.PreferenceCategory android:title="Настройки службы">
+
+        <android.support.v7.preference.EditTextPreference
+            android:key="min_distance_change_for_updates"
+            android:defaultValue="30"
+            android:inputType="number"
+            android:numeric="integer"
+            android:summary="Минимальная дистанция для обновления, метров"
+            android:title="Min distance for updates, meters">
+        </android.support.v7.preference.EditTextPreference>
+        <android.support.v7.preference.EditTextPreference
+            android:key="min_time_for_updates"
+            android:defaultValue="1"
+            android:inputType="number"
+            android:numeric="integer"
+            android:summary="Минимальное время обновления, минут"
+            android:title="Min time for updates, minutes">
+        </android.support.v7.preference.EditTextPreference>
+       </android.support.v7.preference.PreferenceCategory>
+    <android.support.v7.preference.PreferenceCategory android:title="Прочее">
+        <Preference android:title="Остановить службу"
+            android:key="prefButtonStopService"
+            android:summary="Остановить службу регистрации перемещений"/>
+        <Preference android:title="Запустить службу"
+            android:key="prefButtonStartService"
+            android:summary="Запустить службу регистрации перемещений"/>
+        <Preference android:title="Создать таблицы"
+            android:key="prefButtonCreateServerTables"
+            android:summary="Создать таблицы на MS-SQL сервере"/>
+    </android.support.v7.preference.PreferenceCategory>
+</android.support.v7.preference.PreferenceScreen>

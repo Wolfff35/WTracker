@@ -56,26 +56,3 @@ public class DbSchemaOnline {
         }
     }
 }
-/*
-if not exists (select * from sysobjects where name='cars' and xtype='U')
-    create table cars (
-        Name varchar(64) not null
-    )
-go
- */
-
-/*
-SELECT t_coord._id_user,t_coord._date,t_coord.max_time
-FROM
-(SELECT _id_user,_date,MAX(_time) AS max_time
- FROM [tessst_gps].[dbo].[t_coords]
- GROUP BY _id_user,_date) t_coord,
-
-
- (SELECT _id_user,MAX(_date) AS max_date
- FROM [tessst_gps].[dbo].[t_coords]
- GROUP BY _id_user) t_us
- WHERE t_us._id_user = t_coord._id_user AND t_us.max_date = t_coord._date
-
-
- */

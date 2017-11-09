@@ -6,19 +6,7 @@
         android:title="Добавить пользователя"
         app:showAsAction="never" />
     <item
-        android:id="@+id/action_create_online_tables"
-        android:title="Создать таблицы на сервере"
+        android:id="@+id/action_settings"
+        android:title="Настройки"
         app:showAsAction="never" />
-    <item
-        android:id="@+id/action_write_coords_to_server"
-        android:title="Выгрузить координаты на сервер"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/action_stop_service"
-        android:title="Остановить сервис"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/action_start_service"
-        android:title="Запустить сервис"
-        app:showAsAction="never" />
-</menu>
+ </menu>

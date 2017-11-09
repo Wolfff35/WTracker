@@ -25,6 +25,8 @@ public class Add_user_fragment extends Fragment {
     private EditText edUserName;
     private EditText edUserPhone;
     private EditText edUserPin;
+    private EditText edUserIMEI;
+
 
     private Button btnAddUser;
     private Add_user_fragment_listener listener;
@@ -52,6 +54,7 @@ public class Add_user_fragment extends Fragment {
         edUserName = (EditText) view.findViewById(R.id.edUserName);
         edUserPhone = (EditText) view.findViewById(R.id.edUserPhone);
         edUserPin = (EditText) view.findViewById(R.id.edUserPin);
+        edUserIMEI = (EditText)view.findViewById(R.id.edUserIMEI);
 
         btnAddUser = (Button) view.findViewById(R.id.btnAddUser);
 
@@ -60,10 +63,12 @@ public class Add_user_fragment extends Fragment {
         edUserName.addTextChangedListener(textWatcher);
         edUserPhone.addTextChangedListener(textWatcher);
         edUserPin.addTextChangedListener(textWatcher);
+        edUserIMEI.addTextChangedListener(textWatcher);
         if (IS_DEBUG) {
-            edUserName.setText("Wolfff");
-            edUserPhone.setText("380673231646");
-            edUserPin.setText("1234");
+            edUserName.setText("phone");
+            edUserPhone.setText("380996649531");
+            edUserPin.setText("4321");
+            edUserIMEI.setText("358161073411306");
         }
         setViewEnabled();
         return view;
@@ -72,6 +77,7 @@ public class Add_user_fragment extends Fragment {
     private void setViewEnabled() {
         boolean isEnabled = (edUserName.getText().toString().length() > 3) &&
                 (edUserPhone.getText().toString().length() == 12) &&
+                (edUserIMEI.getText().toString().length() == 15) &&
                 (edUserPin.getText().toString().length() > 3);
         btnAddUser.setEnabled(isEnabled);
     }
@@ -96,6 +102,7 @@ public class Add_user_fragment extends Fragment {
         newUser.set_name(edUserName.getText().toString());
         //newUser.set_avatar_path();
         newUser.set_pin_for_access(edUserPin.getText().toString());
+        newUser.set_imei_phone(edUserIMEI.getText().toString());
         newUser.set_id_user(edUserPhone.getText().toString());
         return newUser;
     }

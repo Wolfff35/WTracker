@@ -1,6 +1,7 @@
 package com.wolff.wtracker;
 
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -9,14 +10,20 @@ import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
 
 import com.wolff.wtracker.localdb.DataLab;
 import com.wolff.wtracker.model.WCoord;
 import com.wolff.wtracker.model.WUser;
+import com.wolff.wtracker.online.OnlineDataLab;
 import com.wolff.wtracker.tools.DateFormatTools;
 import com.wolff.wtracker.tools.Debug;
+import com.wolff.wtracker.tools.PermissionTools;
+import com.wolff.wtracker.tools.PreferencesTools;
 
 import static android.location.LocationProvider.AVAILABLE;
+import static com.wolff.wtracker.tools.PreferencesTools.MIN_DISTANCE_CHANGE_FOR_UPDATES;
+import static com.wolff.wtracker.tools.PreferencesTools.MIN_TIME_FOR_UPDATES;
 
 /**
  * Created by wolff on 28.09.2017.
@@ -27,10 +34,10 @@ public class LocationService implements LocationListener {
     private WUser mCurrentUser;
     private WCoord mLastCoord;
     //The minimum distance to change updates in meters
-    private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 20; // 20 meters
+    //private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 20; // 20 meters
 
     //The minimum time beetwen updates in milliseconds
-    private static final long MIN_TIME_BW_UPDATES = 0;//1000 * 60 * 1; // 1 minute
+    //private static final long MIN_TIME_BW_UPDATES = 0;//1000 * 60 * 1; // 1 minute
 
     private static LocationService instance = null;
 
@@ -58,7 +65,7 @@ public class LocationService implements LocationListener {
     private LocationService(Context context, WUser currentUser) {
         mContext = context;
         mCurrentUser = currentUser;
-        mLastCoord = DataLab.get(mContext).getUserLastCoord(mCurrentUser);
+        mLastCoord = OnlineDataLab.get(mContext).getOnlineUserLastCoord(mCurrentUser);
         initLocationService();
     }
 
@@ -129,6 +136,9 @@ public class LocationService implements LocationListener {
 
     }
     private void updateCoords() {
+        int distance_change = new PreferencesTools().getIntPreference(mContext,MIN_DISTANCE_CHANGE_FOR_UPDATES);
+        int time_change = new PreferencesTools().getIntPreference(mContext,MIN_TIME_FOR_UPDATES)*1000*60;
+
         if (Build.VERSION.SDK_INT >= 23 &&
                 ContextCompat.checkSelfPermission(mContext, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
                 ContextCompat.checkSelfPermission(mContext, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -136,16 +146,16 @@ public class LocationService implements LocationListener {
         }
         if (isGPSEnabled) {
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
-                    MIN_TIME_BW_UPDATES,
-                    MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
+                    time_change,
+                    distance_change, this);
 
             if (locationManager != null) {
                 mLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             }
         } else if (isNetworkEnabled) {
             locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
-                    MIN_TIME_BW_UPDATES,
-                    MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
+                    time_change,
+                    distance_change, this);
             if (locationManager != null) {
                 mLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
             }
@@ -174,12 +184,7 @@ public class LocationService implements LocationListener {
         }
         if(write) {
             dataLab.coord_add(mCurrentUser, coord);
-
-            int l = dataLab.last_coord_update(mCurrentUser, coord);
-            if (l == 0) {
-                dataLab.last_coord_add(mCurrentUser, coord);
-            }
-            mLastCoord=coord;
+             mLastCoord=coord;
         }
     }
 }

@@ -8,20 +8,6 @@ public class DbSchema {
 
     //==========================================================================================
     public static final String DATABASE_NAME = "wtracker.db";
-    public static final String CREATE_TABLE_LAST_COORDS = "CREATE TABLE "+ Table_LastCoords.TABLE_NAME+" ("+
-            Table_Coords.Cols.ID            +" INTEGER PRIMARY KEY AUTOINCREMENT, "+
-            Table_Coords.Cols.DATE          +" TEXT, "+
-            Table_Users.Cols.ID_USER       +" TEXT, "+
-            Table_Coords.Cols.COORD_PROVIDER +" TEXT, "+
-            Table_Coords.Cols.COORD_LAT       +" INTEGER, "+
-            Table_Coords.Cols.COORD_LON       +" INTEGER, "+
-            Table_Coords.Cols.COORD_ALTITUDE       +" INTEGER, "+
-            Table_Coords.Cols.COORD_ACCURACY       +" INTEGER, "+
-            Table_Coords.Cols.COORD_BEARING       +" INTEGER, "+
-            "FOREIGN KEY ("+ Table_Users.Cols.ID_USER+
-            ") REFERENCES "+ Table_Users.TABLE_NAME+"("+
-            Table_Users.Cols.ID_USER+")"+
-            ")";
 
     public static final String CREATE_TABLE_COORDS = "CREATE TABLE "+ Table_Coords.TABLE_NAME+" ("+
             Table_Coords.Cols.ID            +" INTEGER PRIMARY KEY AUTOINCREMENT, "+
@@ -67,11 +53,6 @@ public class DbSchema {
          }
 
      }
-    public static final class Table_LastCoords{
-
-        public static final String TABLE_NAME = "table_last_coord";
-    }
-
     public static final class Table_Users{
 
         public static final String TABLE_NAME = "table_users";

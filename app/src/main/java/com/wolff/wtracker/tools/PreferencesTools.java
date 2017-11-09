@@ -10,6 +10,8 @@ import android.preference.PreferenceManager;
 
 public class PreferencesTools {
     public static final boolean IS_DEBUG = true;
+    public static final  String MIN_DISTANCE_CHANGE_FOR_UPDATES = "min_distance_change_for_updates";
+    public static final  String MIN_TIME_FOR_UPDATES = "min_time_for_updates";
 /*    public static final String PREFERENCE_IS_FIRST_RUN = "pref_is_first_run";
     public static final String PREFERENCE_SERVER_NAME = "pref_server_name";
     public static final String PREFERENCE_BASE_NAME = "pref_base_name";
@@ -19,6 +21,10 @@ public class PreferencesTools {
     public String getStringPreference(Context context, String name) {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
         return preferences.getString(name,null);
+    }
+    public int getIntPreference(Context context, String name) {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        return Integer.valueOf(preferences.getString(name,"0"));
     }
     public boolean getBooleanPreference(Context context, String name) {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);

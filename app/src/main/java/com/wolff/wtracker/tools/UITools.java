@@ -12,6 +12,9 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Layout;
+import android.text.StaticLayout;
+import android.text.TextPaint;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -49,75 +52,182 @@ public class UITools {
         fragmentTransaction.commit();
     }
 
-    public Polyline drawUserWay(Context context,GoogleMap map, WUser user, Date currentDate){
-        Polyline line=null;
-        ArrayList<Marker> points = new ArrayList<>();
-        ArrayList<WCoord> userCoords = OnlineDataLab.get(context).getOnlineUsersCoordinates(user,currentDate);
-        if(userCoords.size()>0){
-            double minLat=180,minLon=180,maxLat=-180,maxLon=-180;
+    //   public Polyline drawUserWay(Context context, GoogleMap map, WUser user, Date currentDate) {
+    public Polyline drawUserWay(Context context, GoogleMap map, ArrayList<WCoord> userCoords) {
+        Polyline line = null;
+        if (userCoords.size() > 0) {
+            double minLat = 180, minLon = 180, maxLat = -180, maxLon = -180;
             PolylineOptions opt = new PolylineOptions();
-            for(int i=0;i<userCoords.size();i++){
-                 double currLat = userCoords.get(i).get_coord_lat();
+            for (int i = 0; i < userCoords.size(); i++) {
+                double currLat = userCoords.get(i).get_coord_lat();
                 double currLon = userCoords.get(i).get_coord_lon();
-                LatLng ll = new LatLng(currLat,currLon);
-                if(i%1000==0){
-                    //Bitmap bitmap = GetBitmapMarker(context, R.drawable.ic_marker3, ""+i);
-                    Bitmap bitmap = textAsBitmap(""+i/1000,38,Color.BLACK);
+                LatLng ll = new LatLng(currLat, currLon);
 
-                    Debug.Log("Point","= "+i);
-                    MarkerOptions mo = new MarkerOptions();
-                    mo.position(ll);
-                    mo.title(""+i/1000);
-                    mo.snippet(new DateFormatTools().dateToString(userCoords.get(i).get_date(),DateFormatTools.TIME_FORMAT_SHORT));
-                    mo.icon(BitmapDescriptorFactory.fromBitmap(bitmap));
-                    Marker marker = map.addMarker(mo);
-                    points.add(marker);
-
-                }
                 opt.add(ll);
-                if(currLat<minLat) minLat=currLat;
-                if(currLat>maxLat) maxLat=currLat;
-                if(currLon<minLon) minLon=currLon;
-                if(currLon>maxLon) maxLon=currLon;
+                if (currLat < minLat) minLat = currLat;
+                if (currLat > maxLat) maxLat = currLat;
+                if (currLon < minLon) minLon = currLon;
+                if (currLon > maxLon) maxLon = currLon;
 
             }
             opt.color(Color.MAGENTA);
+            opt.width(20);
+            opt.geodesic(true);
             line = map.addPolyline(opt);
-            LatLngBounds AREA = new LatLngBounds(new LatLng(minLat,minLon),new LatLng(maxLat,maxLon));
-            map.moveCamera(CameraUpdateFactory.newLatLngBounds(AREA,0));
+            LatLngBounds AREA = new LatLngBounds(new LatLng(minLat, minLon), new LatLng(maxLat, maxLon));
+            map.moveCamera(CameraUpdateFactory.newLatLngBounds(AREA, 0));
         }
         return line;
     }
-    public Map<WUser,Marker> drawLastCoords(GoogleMap map,Map<WUser,WCoord>lastUserCoordinates){
-        Map<WUser,Marker> mMarkers = new HashMap<>();
+
+    private int getCoeff(int coord_count) {
+        int count;
+        if (coord_count > 10000) {
+            count = 2000;
+        } else if (coord_count > 1000) {
+            count = 500;
+        } else if (coord_count > 100) {
+            count = 100;
+        } else {
+            count = 10;
+        }
+        Debug.Log("KOEFF", "coords = " + coord_count + "; koeff = " + count);
+        return count;
+    }
+
+    public ArrayList<Marker> drawUserCheckPoints(GoogleMap map,WUser user, ArrayList<WCoord> userCoords) {
+        ArrayList<Marker> mMarkers = new ArrayList<>();
+        int koeff = getCoeff(userCoords.size());
+        for (int i = 0; i < userCoords.size(); i++) {
+            if ((i % koeff) == 0) {
+                //Bitmap bitmap = GetBitmapMarker(context, R.drawable.ic_action_name, ""+i/1000);
+                //Bitmap bitmap = drawText(context,""+i/1000,30);
+                Bitmap bitmap = textAsBitmap("" + i / koeff, 30, Color.BLACK);
+
+                Debug.Log("Point", "= " + i);
+                MarkerOptions mo = new MarkerOptions();
+                double currLat = userCoords.get(i).get_coord_lat();
+                double currLon = userCoords.get(i).get_coord_lon();
+                LatLng ll = new LatLng(currLat, currLon);
+                mo.position(ll);
+                mo.title("" + i / koeff);
+                mo.snippet(new DateFormatTools().dateToString(userCoords.get(i).get_date(), DateFormatTools.TIME_FORMAT_SHORT));
+                mo.icon(BitmapDescriptorFactory.fromBitmap(bitmap));
+                Marker marker = map.addMarker(mo);
+                mMarkers.add(marker);
+            }
+        }
+    return mMarkers;
+    }
+
+
+
+
+    public Map<WUser, Marker> drawAllUserLastCoords(GoogleMap map, Map<WUser, WCoord> lastUserCoordinates) {
+        Map<WUser, Marker> mMarkers = new HashMap<>();
         for (Map.Entry<WUser, WCoord> entry : lastUserCoordinates.entrySet()) {
             WCoord coord = entry.getValue();
             WUser user = entry.getKey();
-            LatLng ll = new LatLng(coord.get_coord_lat(),coord.get_coord_lon());
-            if(user==null){
+            LatLng ll = new LatLng(coord.get_coord_lat(), coord.get_coord_lon());
+            if (user == null) {
                 return mMarkers;
             }
-            if(mMarkers.get(user)!=null){
+            if (mMarkers.get(user) != null) {
                 mMarkers.get(user).setPosition(ll);
-                mMarkers.get(user).setTitle(user.get_name()+" "+user.get_id_user());
-                mMarkers.get(user).setSnippet("lat: "+coord.get_coord_lat()+";  lng: "+coord.get_coord_lon());
-            }else {
+                mMarkers.get(user).setTitle(user.get_name() + " " + user.get_id_user());
+                mMarkers.get(user).setSnippet("lat: " + coord.get_coord_lat() + ";  lng: " + coord.get_coord_lon());
+            } else {
                 MarkerOptions mo = new MarkerOptions();
                 mo.position(ll);
-                mo.title(user.get_name()+" "+user.get_id_user());
-                mo.snippet("lat: "+coord.get_coord_lat()+";  lng: "+coord.get_coord_lon());
+                mo.title(user.get_name() + " " + user.get_id_user());
+                mo.snippet("lat: " + coord.get_coord_lat() + ";  lng: " + coord.get_coord_lon());
                 //mo.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_marker));
                 Marker marker = map.addMarker(mo);
-                mMarkers.put(user,marker);
+                mMarkers.put(user, marker);
             }
 
-            CameraPosition position = new CameraPosition(ll,10,0,0);
+            CameraPosition position = new CameraPosition(ll, 10, 0, 0);
             map.moveCamera(CameraUpdateFactory.newCameraPosition(position));
         }
         return mMarkers;
     }
 
-    //==============================================================================================
+
+    public static Bitmap drawText(Context mContext, String text, int textSize) {
+        int textWidth = textSize * 2;
+        // Get text dimensions
+        TextPaint textPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG
+                | Paint.LINEAR_TEXT_FLAG);
+        textPaint.setStyle(Paint.Style.FILL);
+        textPaint.setColor(Color.BLUE);
+        textPaint.setTextSize(textSize);
+        StaticLayout mTextLayout = new StaticLayout(text, textPaint,
+                textWidth, Layout.Alignment.ALIGN_CENTER, 1.0f, 0.0f, false);
+
+// Create bitmap and canvas to draw to
+        Resources resources = mContext.getResources();
+        int resourceId = R.drawable.ic_action_name;
+        Bitmap b = BitmapFactory.decodeResource(resources, resourceId);
+        android.graphics.Bitmap.Config bitmapConfig = b.getConfig();
+        b = b.copy(bitmapConfig, true);
+        Canvas c = new Canvas(b);
+
+// Draw background
+        //float scale = resources.getDisplayMetrics().density;
+
+        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG
+                | Paint.LINEAR_TEXT_FLAG);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setColor(Color.GREEN);
+        //c.drawPaint(paint);
+
+// Draw text
+        c.save();
+        int dx = 0;
+        int dy = 0;
+        c.translate(dx, dy);
+        mTextLayout.draw(c);
+        c.restore();
+
+        return b;
+    }
+
+public ArrayList<WCoord> renderCoords(ArrayList<WCoord> coords){
+        ArrayList<WCoord> newCoords = new ArrayList<>();
+        int lat_dir_prev=0, lon_dir_prev=0;
+        int lat_dir=0, lon_dir=0;
+        for(int i=1;i<coords.size()-1;i++){
+            //current coord
+            if(coords.get(i).get_coord_lat()>coords.get(i-1).get_coord_lat()){
+                lat_dir=1;
+            }else {
+                lat_dir=-1;
+            }
+            if(coords.get(i).get_coord_lon()>coords.get(i-1).get_coord_lon()){
+                lon_dir=1;
+            }else {
+                lon_dir=-1;
+            }
+            if((i==1)){
+                lat_dir_prev=lat_dir;
+                lon_dir_prev=lon_dir;
+                newCoords.add(coords.get(i-1));
+            }
+            if(i==coords.size()-1){
+                newCoords.add(coords.get(i));
+            }
+            //=====================================================================================
+            if(lat_dir!=lat_dir_prev|lon_dir!=lon_dir_prev){
+                    newCoords.add(coords.get(i));
+                    lat_dir_prev=lat_dir;
+                    lon_dir_prev=lon_dir;
+            }
+
+        }
+        Debug.Log("render","Исходный размер = "+coords.size()+"; новый размер = "+newCoords.size());
+        return newCoords;
+}
+//==============================================================================================
    /*
    MapUtils mapUtils = new MapUtils(getApplicationContext());
         Bitmap bitmap = mapUtils.GetBitmapMarker(getApplicationContext(), R.drawable.marker_blue, "1");
@@ -140,10 +250,10 @@ public class UITools {
         canvas.drawText(text, 0, baseline, paint);
         return image;
     }
-   public Bitmap GetBitmapMarker(Context mContext, int resourceId, String mText)
+  /*  public Bitmap GetBitmapMarker(Context mContext, int resourceId, String mText)
     {
-        try
-        {
+        //try
+        //{
             Resources resources = mContext.getResources();
             float scale = resources.getDisplayMetrics().density;
             Bitmap bitmap = BitmapFactory.decodeResource(resources, resourceId);
@@ -158,8 +268,8 @@ public class UITools {
 
             Canvas canvas = new Canvas(bitmap);
             Paint paint = new Paint(ANTI_ALIAS_FLAG);
-            paint.setColor(Color.WHITE);
-            paint.setTextSize((int) (14 * scale));
+            paint.setColor(Color.BLACK);
+            paint.setTextSize((int) (8 * scale));
             paint.setShadowLayer(1f, 0f, 1f, Color.DKGRAY);
 
             // draw text to the Canvas center
@@ -172,10 +282,41 @@ public class UITools {
 
             return bitmap;
 
-        }
-        catch (Exception e)
-        {
-            return null;
-        }
+        //}
+        //catch (Exception e)
+        //{
+        //    return null;
+        //}
     }
+    */
+/*    public static Bitmap drawText_old(String text, int textWidth, int textSize) {
+// Get text dimensions
+        TextPaint textPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG
+                | Paint.LINEAR_TEXT_FLAG);
+        textPaint.setStyle(Paint.Style.FILL);
+        textPaint.setColor(Color.BLACK);
+        textPaint.setTextSize(textSize);
+        StaticLayout mTextLayout = new StaticLayout(text, textPaint,
+                textWidth, Layout.Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false);
+
+// Create bitmap and canvas to draw to
+        Bitmap b = Bitmap.createBitmap(textWidth, mTextLayout.getHeight(), Bitmap.Config.RGB_565);
+        Canvas c = new Canvas(b);
+
+// Draw background
+        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG
+                | Paint.LINEAR_TEXT_FLAG);
+        paint.setStyle(Paint.Style.FILL);
+        paint.setColor(Color.GREEN);
+        c.drawPaint(paint);
+
+// Draw text
+        c.save();
+        c.translate(0, 0);
+        mTextLayout.draw(c);
+        c.restore();
+
+        return b;
+    }
+*/
 }
