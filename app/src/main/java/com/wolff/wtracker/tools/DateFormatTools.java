@@ -19,7 +19,7 @@ public class DateFormatTools {
     //public  static final String DATE_FORMAT_SQL_SHORT = "yyyy-MM-dd";
     public  static final String TIME_FORMAT_SHORT = "HH:mm:ss";
     //public static final String DATE_FORMAT_DELETE = "%Y.%m.%d %H:%M:%S";
-    //public  static final String DATE_FORMAT_SQL = "yyyy-MM-dd HH:mm:ss";
+    public  static final String DATE_FORMAT_SQL_LONG = "yyyy-MM-dd HH:mm:ss.SSS";
     public  static final String DATE_FORMAT_STR = "yyyy-MM-dd'T'HH:mm:ss";
     public  static final String DATE_FORMAT_SHORT = "yyyy/MM/dd";
     public  static final String TIME_FORMAT_SQL_LONG = "HH:mm:ss.SSS";

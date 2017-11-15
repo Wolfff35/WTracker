@@ -106,7 +106,8 @@ public class OnlineDataLab {
             for(int i=0;i<rs.size();i++){
                 WCoord coord = new WCoord();
                 HashMap onlCoord = (HashMap) rs.get(i);
-                Date t =  dft.dateFromString((String)onlCoord.get(DbSchema.Table_Coords.Cols.TIME),DateFormatTools.TIME_FORMAT_SQL_LONG);
+                //Date t =  dft.dateFromString((String)onlCoord.get(DbSchema.Table_Coords.Cols.TIME),DateFormatTools.TIME_FORMAT_SQL_LONG);
+                Date t =  dft.dateFromString((String)onlCoord.get(DbSchema.Table_Coords.Cols.DATE)+" "+(String)onlCoord.get(DbSchema.Table_Coords.Cols.TIME),DateFormatTools.DATE_FORMAT_SQL_LONG);
                 coord.set_date(t);
                 coord.set_provider((String) onlCoord.get(DbSchema.Table_Coords.Cols.COORD_PROVIDER));
                 coord.set_coord_lon((Double) onlCoord.get(DbSchema.Table_Coords.Cols.COORD_LON));
@@ -173,7 +174,8 @@ public class OnlineDataLab {
                 //if(user!=null) {
                 user.set_imei_phone((String) onlCoord.get(DbSchema.Table_Users.Cols.IMEI_PHONE));
                // }
-                Date t =  dft.dateFromString((String)onlCoord.get(DbSchema.Table_Coords.Cols.TIME),DateFormatTools.TIME_FORMAT_SQL_LONG);
+                //Date t =  dft.dateFromString((String)onlCoord.get(DbSchema.Table_Coords.Cols.TIME),DateFormatTools.TIME_FORMAT_SQL_LONG);
+                Date t =  dft.dateFromString((String)onlCoord.get(DbSchema.Table_Coords.Cols.DATE)+" "+(String)onlCoord.get(DbSchema.Table_Coords.Cols.TIME),DateFormatTools.DATE_FORMAT_SQL_LONG);
                 coord.set_date(t);
                 coord.set_provider((String) onlCoord.get(DbSchema.Table_Coords.Cols.COORD_PROVIDER));
                 coord.set_coord_lon((Double) onlCoord.get(DbSchema.Table_Coords.Cols.COORD_LON));

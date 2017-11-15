@@ -204,6 +204,7 @@ public class ActivityMain extends AppCompatActivity
         if (showRegisterForm) {
             mRegisterUserFragment = Register_user_fragment.newInstance();
             new UITools().displayFragment(this, mRegisterUserFragment);
+        }else {
         }
     }
 
@@ -288,17 +289,25 @@ public class ActivityMain extends AppCompatActivity
         UITools uiTools = new UITools();
         uiTools.displayFragment(ActivityMain.this, mGoogleMapFragment);
         WUser user = mUsers.get(mCurrentUserIndex - 1);
+        setTitle("Перемещение "+user.get_name());
         ArrayList<WCoord> userCoords = OnlineDataLab.get(getApplicationContext()).getOnlineUsersCoordinates(user, mCurrentDate);
-        ArrayList<WCoord> userCoords_rendered = uiTools.renderCoords(userCoords);
-        mUserWay = uiTools.drawUserWay(getApplicationContext(), mGoogleMapFragment.mMap, userCoords_rendered);
-        mUserCheckPoints = uiTools.drawUserCheckPoints(mGoogleMapFragment.mMap,user,userCoords_rendered);
+        if(userCoords.size()>0) {
+            ArrayList<WCoord> userCoords_rendered = uiTools.renderCoords(userCoords);
+            mUserWay = uiTools.drawUserWay(getApplicationContext(), mGoogleMapFragment.mMap, userCoords_rendered);
+            mUserCheckPoints = uiTools.drawUserCheckPoints(getApplicationContext(), mGoogleMapFragment.mMap, user, userCoords_rendered);
+        }else {
+            ArrayList<WUser> users = new ArrayList<>();
+            users.add(user);
+            mLastCoords = uiTools.drawUserLastCoords(getApplicationContext(),mGoogleMapFragment.mMap, OnlineDataLab.get(getApplicationContext()).getOnlineLastCoords(users));
+        }
     }
 
     private void drawLastCoords() {
+        setTitle("Последние координаты");
         clearMap();
         UITools uiTools = new UITools();
         uiTools.displayFragment(ActivityMain.this, mGoogleMapFragment);
-        mLastCoords = uiTools.drawAllUserLastCoords(mGoogleMapFragment.mMap, OnlineDataLab.get(getApplicationContext()).getOnlineLastCoords(mUsers));
+        mLastCoords = uiTools.drawUserLastCoords(getApplicationContext(),mGoogleMapFragment.mMap, OnlineDataLab.get(getApplicationContext()).getOnlineLastCoords(mUsers));
 
     }
     private void clearMap(){
