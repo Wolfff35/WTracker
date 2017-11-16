@@ -275,7 +275,7 @@ public class ActivityMain extends AppCompatActivity
     private SeekBar.OnSeekBarChangeListener seekBarOnChangeListener = new SeekBar.OnSeekBarChangeListener() {
         @Override
         public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-            mGoogleMapFragment.mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mUserCheckPoints.get(i).getPosition(), 10));
+            mGoogleMapFragment.mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mUserCheckPoints.get(i).getPosition(), 30));
           }
 
         @Override
