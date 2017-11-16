@@ -89,7 +89,7 @@ public class Google_map_fragment extends Fragment implements OnMapReadyCallback 
         //TODO if (mMap != null&&PermissionTools.enableMyLocation((AppCompatActivity) getActivity())) mMap.setMyLocationEnabled(true);
         // mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
         //mMap.setMyLocationEnabled(true);
-        mMap.setTrafficEnabled(true);
+        mMap.setTrafficEnabled(false);
         mMap.setIndoorEnabled(true);
         mMap.setBuildingsEnabled(true);
         mMap.getUiSettings().setZoomControlsEnabled(true);

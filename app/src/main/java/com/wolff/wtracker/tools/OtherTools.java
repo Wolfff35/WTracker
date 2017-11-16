@@ -1,11 +1,22 @@
 package com.wolff.wtracker.tools;
 
+import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.Context;
+import android.graphics.Color;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.telephony.TelephonyManager;
+import android.util.AttributeSet;
+import android.view.InflateException;
+import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.SubMenu;
+import android.view.View;
+import android.widget.TextView;
 
+import com.wolff.wtracker.R;
 import com.wolff.wtracker.localdb.DataLab;
 import com.wolff.wtracker.model.WUser;
 import com.wolff.wtracker.online.AsyncInsertUser;
@@ -111,13 +122,35 @@ public class OtherTools {
      }
 
     public void createDrawerMenu(ArrayList<WUser> userList, Menu menu) {
-        menu.clear();
+          menu.clear();
         menu.add(Menu.NONE, 0, Menu.NONE, "Последние координаты");
         int i = 1;
+        //SubMenu group = menu.addSubMenu("-");
+
         for (WUser user : userList) {
-            menu.add(Menu.NONE, i, Menu.NONE, user.get_name() + "(" + user.get_id_user() + ")");
+            menu.add(R.id.menu_group, i, Menu.NONE, user.get_name() + "(" + user.get_id_user() + ")");
             i++;
         }
+
+    }
+    public void fillDrawerHeader(View view,WUser user){
+        TextView tvCurrentUserName = (TextView)view.findViewById(R.id.tvCurrentUserName);
+        tvCurrentUserName.setText(user.get_name());
+
+        TextView tvCurrentUserPhone = (TextView)view.findViewById(R.id.tvCurrentUserPhone);
+        tvCurrentUserPhone.setText(user.get_phone().substring(0,2)
+                +"("+user.get_phone().substring(2,5)+") "
+                +user.get_phone().substring(5,8)+"-"
+                +user.get_phone().substring(8,10)+"-"
+                +user.get_phone().substring(10,12));
+        TextView tvCurrentUserIMEI = (TextView)view.findViewById(R.id.tvCurrentUserIMEI);
+        //tvCurrentUserIMEI.setText(user.get_imei_phone());
+        tvCurrentUserIMEI.setText(user.get_imei_phone().substring(0,3)+"-"
+                +user.get_imei_phone().substring(3,6)+"-"
+                +user.get_imei_phone().substring(6,9)+"-"
+                +user.get_imei_phone().substring(9,12)+"-"
+                +user.get_imei_phone().substring(12,15));
+
 
     }
 }

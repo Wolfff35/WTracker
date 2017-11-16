@@ -10,7 +10,10 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:layout_gravity="bottom"
+        android:gravity="bottom"
+        android:orientation="vertical"
+        tools:layout_editor_absoluteY="-6dp">
 
         <android.support.design.widget.AppBarLayout
             android:layout_width="match_parent"
@@ -22,7 +25,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
                 android:background="?attr/colorPrimary"
-                app:popupTheme="@style/AppTheme.PopupOverlay"/>
+                app:popupTheme="@style/AppTheme.PopupOverlay" />
 
         </android.support.design.widget.AppBarLayout>
 
@@ -30,7 +33,9 @@
             layout="@layout/content_activity_main"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="1"/>
+            android:layout_gravity="bottom"
+            android:layout_margin="1dp"
+            android:layout_weight="1" />
 
     </LinearLayout>
 
@@ -43,5 +48,18 @@
         android:layout_marginTop="@dimen/fab_margin_top"
         android:textColor="@android:color/background_dark"
         app:backgroundTint="@android:color/background_light" />
+
+    <SeekBar
+        android:id="@+id/seekBar"
+        style="@android:style/Widget.Material.SeekBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|start"
+        android:layout_marginBottom="30dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="60dp"
+        android:max="10"
+        android:progress="3"
+        android:visibility="visible" />
 
 </android.support.design.widget.CoordinatorLayout>

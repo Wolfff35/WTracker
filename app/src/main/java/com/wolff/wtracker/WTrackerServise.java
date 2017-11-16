@@ -47,7 +47,6 @@ public class WTrackerServise extends Service {
         mCurrentUser = dataLab.getCurrentUser(mUsers);
         mLocationService = LocationService.getLocationManager(getApplicationContext(), mCurrentUser);
         sendNotification();
-
     }
 
     public int onStartCommand(Intent intent, int flags, int startId) {

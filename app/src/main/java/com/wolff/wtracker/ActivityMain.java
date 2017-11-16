@@ -16,8 +16,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.DatePicker;
+import android.widget.ProgressBar;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polyline;
 import com.wolff.wtracker.fragments.Add_user_fragment;
@@ -56,6 +59,7 @@ public class ActivityMain extends AppCompatActivity
 
     private boolean mShowDatePicker = false;
     private Button btnDate;
+    private SeekBar seekBar;
 
     private Polyline mUserWay;
     private Map<WUser, Marker> mLastCoords;
@@ -74,6 +78,8 @@ public class ActivityMain extends AppCompatActivity
         mGoogleMapFragment = Google_map_fragment.newInstance();
 
         btnDate = (Button) findViewById(R.id.btnDate);
+        seekBar = (SeekBar) findViewById(R.id.seekBar);
+
         btnDate.setOnClickListener(btnDateListener);
         setViewsVisibility();
 
@@ -84,7 +90,17 @@ public class ActivityMain extends AppCompatActivity
             DataLab dataLab = DataLab.get(getApplicationContext());
             mUsers = dataLab.getWUserList();
             mCurrentUser = dataLab.getCurrentUser(mUsers);
+            if(mCurrentUser!=null){
+                if (!OtherTools.isServiceRunning(getApplicationContext(), WTrackerServise.class)
+                        && mCurrentUser != null) {
+                    Intent intent = new Intent(getApplicationContext(), WTrackerServise.class);
+                    startService(intent);
+                }
+            }
             registerOrLoginUser();
+
+            View navHeaderView = navigationView.getHeaderView(0);
+            new OtherTools().fillDrawerHeader(navHeaderView,mCurrentUser);
 
             DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
             ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -181,11 +197,6 @@ public class ActivityMain extends AppCompatActivity
         if (mCurrentUser != null && onlineUser != null) {
             if (mCurrentUser.equals(onlineUser)) {
                 new UITools().displayFragment(this, mGoogleMapFragment);
-                if (!OtherTools.isServiceRunning(getApplicationContext(), WTrackerServise.class)
-                        && mCurrentUser != null) {
-                    Intent intent = new Intent(getApplicationContext(), WTrackerServise.class);
-                    startService(intent);
-                }
             } else {
                 showRegisterForm = true;
             }
@@ -252,18 +263,39 @@ public class ActivityMain extends AppCompatActivity
 
     private void setViewsVisibility() {
         if (mShowDatePicker) {
+            seekBar.setVisibility(View.VISIBLE);
             btnDate.setVisibility(View.VISIBLE);
             btnDate.setText(new DateFormatTools().dateToString(mCurrentDate, DateFormatTools.DATE_FORMAT_VID));
         } else {
+            seekBar.setVisibility(View.INVISIBLE);
             btnDate.setVisibility(View.INVISIBLE);
         }
     }
+
+    private SeekBar.OnSeekBarChangeListener seekBarOnChangeListener = new SeekBar.OnSeekBarChangeListener() {
+        @Override
+        public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+            mGoogleMapFragment.mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mUserCheckPoints.get(i).getPosition(), 10));
+          }
+
+        @Override
+        public void onStartTrackingTouch(SeekBar seekBar) {
+
+        }
+
+        @Override
+        public void onStopTrackingTouch(SeekBar seekBar) {
+
+        }
+    };
+
 
     private View.OnClickListener btnDateListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             // определяем текущую дату
             Calendar c = Calendar.getInstance();
+            c.setTime(mCurrentDate);
             int year = c.get(Calendar.YEAR);
             int month = c.get(Calendar.MONTH);
             int day = c.get(Calendar.DAY_OF_MONTH);
@@ -278,6 +310,7 @@ public class ActivityMain extends AppCompatActivity
     DatePickerDialog.OnDateSetListener onDateSetListener = new DatePickerDialog.OnDateSetListener() {
         @Override
         public void onDateSet(DatePicker datePicker, int i, int i1, int i2) {
+            datePicker.setVisibility(View.INVISIBLE);
             mCurrentDate = new DateFormatTools().getDate(i, i1, i2);
             setViewsVisibility();
             drawUserWay();
@@ -293,13 +326,20 @@ public class ActivityMain extends AppCompatActivity
         ArrayList<WCoord> userCoords = OnlineDataLab.get(getApplicationContext()).getOnlineUsersCoordinates(user, mCurrentDate);
         if(userCoords.size()>0) {
             ArrayList<WCoord> userCoords_rendered = uiTools.renderCoords(userCoords);
-            mUserWay = uiTools.drawUserWay(getApplicationContext(), mGoogleMapFragment.mMap, userCoords_rendered);
+            mUserWay = uiTools.drawUserWay(mGoogleMapFragment.mMap, userCoords_rendered);
             mUserCheckPoints = uiTools.drawUserCheckPoints(getApplicationContext(), mGoogleMapFragment.mMap, user, userCoords_rendered);
+            seekBar.setOnSeekBarChangeListener(null);
+            seekBar.setEnabled(true);
+            seekBar.setMax(mUserCheckPoints.size()-1);
+            seekBar.setProgress(0);
+            seekBar.setOnSeekBarChangeListener(seekBarOnChangeListener);
         }else {
             ArrayList<WUser> users = new ArrayList<>();
             users.add(user);
             mLastCoords = uiTools.drawUserLastCoords(getApplicationContext(),mGoogleMapFragment.mMap, OnlineDataLab.get(getApplicationContext()).getOnlineLastCoords(users));
+            seekBar.setEnabled(false);
         }
+
     }
 
     private void drawLastCoords() {

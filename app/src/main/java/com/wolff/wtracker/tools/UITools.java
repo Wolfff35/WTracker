@@ -40,7 +40,7 @@ public class UITools {
         fragmentTransaction.commit();
     }
 
-    public Polyline drawUserWay(Context context, GoogleMap map, ArrayList<WCoord> userCoords) {
+    public Polyline drawUserWay(GoogleMap map, ArrayList<WCoord> userCoords) {
         Polyline line = null;
         if (userCoords.size() > 0) {
             double minLat = 180, minLon = 180, maxLat = -180, maxLon = -180;
@@ -49,7 +49,6 @@ public class UITools {
                 double currLat = userCoords.get(i).get_coord_lat();
                 double currLon = userCoords.get(i).get_coord_lon();
                 LatLng ll = new LatLng(currLat, currLon);
-
                 opt.add(ll);
                 if (currLat < minLat) minLat = currLat;
                 if (currLat > maxLat) maxLat = currLat;
@@ -58,11 +57,11 @@ public class UITools {
 
             }
             opt.color(Color.MAGENTA);
-            opt.width(20);
+            opt.width(18);
             opt.geodesic(true);
             line = map.addPolyline(opt);
             LatLngBounds AREA = new LatLngBounds(new LatLng(minLat, minLon), new LatLng(maxLat, maxLon));
-            map.moveCamera(CameraUpdateFactory.newLatLngBounds(AREA, 0));
+            map.moveCamera(CameraUpdateFactory.newLatLngBounds(AREA, 120));
         }else {
             //нет координат
         }
@@ -72,13 +71,13 @@ public class UITools {
     private int getCoeff(int coord_count) {
         int count;
         if (coord_count > 10000) {
-            count = 1000;
+            count = 2000;
         } else if (coord_count > 1000) {
-            count = 200;
+            count = 500;
         } else if (coord_count > 100) {
-            count = 50;
+            count = 100;
         } else {
-            count = 10;
+            count = 20;
         }
         Debug.Log("KOEFF", "coords = " + coord_count + "; koeff = " + count);
         return count;
@@ -90,6 +89,7 @@ public class UITools {
         for (int i = 0; i < userCoords.size(); i++) {
             if(i==0){
                 IconGenerator icon =new IconGenerator(context);
+                icon.setColor(Color.GREEN);
                 Bitmap bitmap = icon.makeIcon("START ("+new DateFormatTools().dateToString(userCoords.get(i).get_date(),DateFormatTools.DATE_FORMAT_VID_FULL)+")");
 
                 Debug.Log("Point 0", "= " + i);
@@ -99,9 +99,9 @@ public class UITools {
                 LatLng ll = new LatLng(currLat, currLon);
                 mo.position(ll);
                 mo.flat(false);
+                mo.zIndex(i);
                 mo.title("START");
-                mo.snippet("lat: " + currLat + ";\n  lng: " + currLon);
-                //mo.snippet(new DateFormatTools().dateToString(userCoords.get(i).get_date(), DateFormatTools.DATE_FORMAT_VID_FULL));
+                mo.snippet("lat: " + currLat + ";  lng: " + currLon);
                 mo.icon(BitmapDescriptorFactory.fromBitmap(bitmap));
                 Marker marker = map.addMarker(mo);
                 mMarkers.add(marker);
@@ -110,6 +110,7 @@ public class UITools {
 
             if(i==userCoords.size()-1&&i!=0){
                 IconGenerator icon =new IconGenerator(context);
+                icon.setColor(Color.RED);
                 Bitmap bitmap = icon.makeIcon("FINISH ("+new DateFormatTools().dateToString(userCoords.get(i).get_date(),DateFormatTools.DATE_FORMAT_VID_FULL)+")");
 
                 Debug.Log("Point last", "= " + i);
@@ -119,9 +120,9 @@ public class UITools {
                 LatLng ll = new LatLng(currLat, currLon);
                 mo.position(ll);
                 mo.flat(false);
+                mo.zIndex(i);
                 mo.title("FINISH");
-                mo.snippet("lat: " + currLat + ";\n  lng: " + currLon);
-                //mo.snippet(new DateFormatTools().dateToString(userCoords.get(i).get_date(), DateFormatTools.TIME_FORMAT_SHORT));
+                mo.snippet("lat: " + currLat + ";  lng: " + currLon);
                 mo.icon(BitmapDescriptorFactory.fromBitmap(bitmap));
                 Marker marker = map.addMarker(mo);
                 mMarkers.add(marker);
@@ -139,13 +140,14 @@ public class UITools {
                 mo.position(ll);
                 mo.flat(false);
                 mo.title("" + i / koeff);
-                mo.snippet("lat: " + currLat + ";\n  lng: " + currLon);
-                //mo.snippet(new DateFormatTools().dateToString(userCoords.get(i).get_date(), DateFormatTools.TIME_FORMAT_SHORT));
+                mo.snippet("lat: " + currLat + ";  lng: " + currLon);
+                mo.zIndex(i);
                 mo.icon(BitmapDescriptorFactory.fromBitmap(bitmap));
                 Marker marker = map.addMarker(mo);
                 mMarkers.add(marker);
             }
         }
+        Debug.Log("POINTS TOTAL","= "+mMarkers.size());
     return mMarkers;
     }
 
@@ -172,13 +174,13 @@ public class UITools {
             if (mMarkers.get(user) != null) {
                 mMarkers.get(user).setPosition(ll);
                 mMarkers.get(user).setTitle(user.get_name() + " " + user.get_id_user());
-                mMarkers.get(user).setSnippet("lat: " + coord.get_coord_lat() + ";\n  lng: " + coord.get_coord_lon());
+                mMarkers.get(user).setSnippet("lat: " + coord.get_coord_lat() + ";  lng: " + coord.get_coord_lon());
             } else {
                 MarkerOptions mo = new MarkerOptions();
                 mo.position(ll);
                 mo.title(user.get_name() + " " + user.get_id_user());
                 mo.flat(false);
-                mo.snippet("lat: " + coord.get_coord_lat() + ";\n  lng: " + coord.get_coord_lon());
+                 mo.snippet("lat: " + coord.get_coord_lat() + ";  lng: " + coord.get_coord_lon());
 
                 IconGenerator icon =new IconGenerator(context);
                 icon.setTextAppearance(2);

@@ -5,7 +5,7 @@
 
         <android.support.v7.preference.EditTextPreference
             android:key="min_distance_change_for_updates"
-            android:defaultValue="30"
+            android:defaultValue="20"
             android:inputType="number"
             android:numeric="integer"
             android:summary="Минимальная дистанция для обновления, метров"
@@ -13,7 +13,7 @@
         </android.support.v7.preference.EditTextPreference>
         <android.support.v7.preference.EditTextPreference
             android:key="min_time_for_updates"
-            android:defaultValue="1"
+            android:defaultValue="0"
             android:inputType="number"
             android:numeric="integer"
             android:summary="Минимальное время обновления, минут"
