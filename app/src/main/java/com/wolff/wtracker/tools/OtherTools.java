@@ -44,36 +44,37 @@ public class OtherTools {
 
     //=====
     public String getIMEI(Context context) {
-        if(!PermissionTools.enableReadPhoneState((AppCompatActivity) context)){
+        if (!PermissionTools.enableReadPhoneState((AppCompatActivity) context)) {
             return null;
         }
         TelephonyManager manager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
         return manager.getDeviceId();
     }
+
     public boolean addUser(Context context, WUser newUser) {
-            WUser onlineUser = OnlineDataLab.get(context).getOnlineUser(newUser);
-            if (onlineUser != null) {
-                WUser localUser = DataLab.get(context).getUserById(onlineUser.get_id_user(),DataLab.get(context).getWUserList());
-                if(localUser==null) {
-                    if (onlineUser.get_id_user().equals(newUser.get_id_user()) &&
-                            onlineUser.get_pin_for_access().equals(newUser.get_pin_for_access())
-                            &&onlineUser.get_imei_phone().equals(newUser.get_imei_phone())) {
-                        DataLab.get(context).user_add(newUser);
-                        return true;
-                    } else {
-                        return false;
-                    }
-                }else {
+        WUser onlineUser = OnlineDataLab.get(context).getOnlineUser(newUser);
+        if (onlineUser != null) {
+            WUser localUser = DataLab.get(context).getUserById(onlineUser.get_id_user(), DataLab.get(context).getWUserList());
+            if (localUser == null) {
+                if (onlineUser.get_id_user().equals(newUser.get_id_user()) &&
+                        onlineUser.get_pin_for_access().equals(newUser.get_pin_for_access())
+                        && onlineUser.get_imei_phone().equals(newUser.get_imei_phone())) {
+                    DataLab.get(context).user_add(newUser);
+                    return true;
+                } else {
                     return false;
                 }
             } else {
                 return false;
             }
+        } else {
+            return false;
+        }
 
     }
 
     public boolean registerNewUser(Context context, WUser user) {
-        if(user==null){
+        if (user == null) {
             return false;
         }
         try {
@@ -103,26 +104,26 @@ public class OtherTools {
     }
 
     public boolean loginUser(Context context, WUser user) {
-        if(user==null){
+        if (user == null) {
             return false;
         }
         WUser localUser = DataLab.get(context).queryWUserById(user.get_id_user());
-        if(localUser==null) {
+        if (localUser == null) {
             DataLab.get(context).user_add(user);
         }
-            WUser existUser = OnlineDataLab.get(context).getOnlineUser(user);
+        WUser existUser = OnlineDataLab.get(context).getOnlineUser(user);
 
-            if (existUser == null) {
-                Debug.Log(LOG_TAG, "Нет такого пользователя!");
-                return false;
-            } else {
-                return existUser.get_imei_phone().equals(user.get_imei_phone()) &&
-                        existUser.get_password().equals(user.get_password());
-            }
-     }
+        if (existUser == null) {
+            Debug.Log(LOG_TAG, "Нет такого пользователя!");
+            return false;
+        } else {
+            return existUser.get_imei_phone().equals(user.get_imei_phone()) &&
+                    existUser.get_password().equals(user.get_password());
+        }
+    }
 
     public void createDrawerMenu(ArrayList<WUser> userList, Menu menu) {
-          menu.clear();
+        menu.clear();
         menu.add(Menu.NONE, 0, Menu.NONE, "Последние координаты");
         int i = 1;
         //SubMenu group = menu.addSubMenu("-");
@@ -133,24 +134,26 @@ public class OtherTools {
         }
 
     }
-    public void fillDrawerHeader(View view,WUser user){
-        TextView tvCurrentUserName = (TextView)view.findViewById(R.id.tvCurrentUserName);
-        tvCurrentUserName.setText(user.get_name());
 
-        TextView tvCurrentUserPhone = (TextView)view.findViewById(R.id.tvCurrentUserPhone);
-        tvCurrentUserPhone.setText(user.get_phone().substring(0,2)
-                +"("+user.get_phone().substring(2,5)+") "
-                +user.get_phone().substring(5,8)+"-"
-                +user.get_phone().substring(8,10)+"-"
-                +user.get_phone().substring(10,12));
-        TextView tvCurrentUserIMEI = (TextView)view.findViewById(R.id.tvCurrentUserIMEI);
-        //tvCurrentUserIMEI.setText(user.get_imei_phone());
-        tvCurrentUserIMEI.setText(user.get_imei_phone().substring(0,3)+"-"
-                +user.get_imei_phone().substring(3,6)+"-"
-                +user.get_imei_phone().substring(6,9)+"-"
-                +user.get_imei_phone().substring(9,12)+"-"
-                +user.get_imei_phone().substring(12,15));
+    public void fillDrawerHeader(View view, WUser user) {
+        if (user != null) {
+            TextView tvCurrentUserName = (TextView) view.findViewById(R.id.tvCurrentUserName);
+            tvCurrentUserName.setText(user.get_name());
 
+            TextView tvCurrentUserPhone = (TextView) view.findViewById(R.id.tvCurrentUserPhone);
+            tvCurrentUserPhone.setText(user.get_phone().substring(0, 2)
+                    + "(" + user.get_phone().substring(2, 5) + ") "
+                    + user.get_phone().substring(5, 8) + "-"
+                    + user.get_phone().substring(8, 10) + "-"
+                    + user.get_phone().substring(10, 12));
+            TextView tvCurrentUserIMEI = (TextView) view.findViewById(R.id.tvCurrentUserIMEI);
+            //tvCurrentUserIMEI.setText(user.get_imei_phone());
+            tvCurrentUserIMEI.setText(user.get_imei_phone().substring(0, 3) + "-"
+                    + user.get_imei_phone().substring(3, 6) + "-"
+                    + user.get_imei_phone().substring(6, 9) + "-"
+                    + user.get_imei_phone().substring(9, 12) + "-"
+                    + user.get_imei_phone().substring(12, 15));
+        }
 
     }
 }

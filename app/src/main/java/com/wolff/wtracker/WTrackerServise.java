@@ -118,6 +118,7 @@ public class WTrackerServise extends Service {
                     return;
                 }
                 ArrayList<WCoord> coords = DataLab.get(getApplicationContext()).getLocalCoords();
+                Debug.Log("LOCAL COORDS","======================== count = "+coords.size());
                 AsyncInsertCoords task = new AsyncInsertCoords(getApplicationContext(), mCurrentUser, coords);
                 task.execute();
 
